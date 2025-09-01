@@ -1,0 +1,29 @@
+:root {
+  font-family: 'Roboto Mono', monospace;
+  --background-color: #332d35;
+  --border-highlight-color: #7a017a;
+  --main-text-color: white;
+  --negative-output-color: #ffae44;
+}
+
+a {
+  text-decoration: none;
+  color: black;
+}
+
+ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--background-color);
+  overflow: hidden;
+}
+
+button {
+  font-family: inherit;
+}
