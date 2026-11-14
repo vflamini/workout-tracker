@@ -1,31 +1,27 @@
-<script lang='ts'>
-  import TextInput from '$lib/components/TextInput.svelte';
-  import Timer from '$lib/components/Timer.svelte';
-  import DateInput from '$lib/components/DateInput.svelte';
-  import Exercise from '$lib/components/Exercise.svelte';
-  import type { WorkoutExercise } from '$lib/db/types/_types';
-  import ExercisesModal from '$lib/components/modals/ExercisesModal.svelte';
+<script lang="ts">
+  import TextInput from '#lib/components/TextInput.svelte';
+  import Timer from '#lib/components/Timer.svelte';
+  import DateInput from '#lib/components/DateInput.svelte';
+  import Exercise from '#lib/components/Exercise.svelte';
+  import type { WorkoutExercise, Set } from '#lib/db/types/_types.ts';
+  import ExercisesModal from '#lib/components/modals/ExercisesModal.svelte';
+  import { getCurrentWorkout } from '#lib/contexts/CurrentWorkout.svelte.js';
 
   let { data } = $props();
-  const { exercises, workouts } = data;
+  const exercises = $derived(data.exercises);
   let exercisesModal = $state(false);
+  const { actions } = getCurrentWorkout();
 
-  const blankSet = {
+  const blankSet: Set = {
     reps: 0,
     weight: 0,
     time: '00:00'
-  }
-
-  const blankExercise = {
-    exerciseName: '',
-    sets: [blankSet],
-  }
+  };
 
   let currentExercises = $state<WorkoutExercise[]>([]);
 
   function addExercise(exercise: WorkoutExercise) {
-    console.log(exercise);
-    currentExercises = [...currentExercises, exercise]
+    actions.addExercise(exercise);
     hideExercises();
   }
 
@@ -38,13 +34,7 @@
   }
 
   function removeSet(exercise: WorkoutExercise, setNum: number) {
-    exercise
-      .sets = exercise
-                .sets
-                .filter((_, i) => i !== setNum);
-    if (exercise.sets.length === 0) {
-      currentExercises = currentExercises.filter(e => e !== exercise)
-    }
+    actions.removeSet(exercise, setNum);
   }
 
   function showExercises() {
@@ -54,37 +44,39 @@
   function hideExercises() {
     exercisesModal = false;
   }
+
+  async function submit() {
+    await fetch('/workout-exercise', {
+      method: 'POST',
+      body: JSON.stringify(currentExercises)
+    });
+  }
 </script>
 
 <div>
-  <TextInput
-    id={'workout-name'}
-    label={'Workout Name'}
-  />
-  <br>
-  <TextInput
-    id={'workout-variation'}
-    label={'Workout Variation'}
-    classes={'skinny'}
-  />
-  <br>
-  <div class='time-inputs'>
+  <TextInput id="workout-name" label="Workout Name" />
+  <br />
+  <TextInput id="workout-variation" label="Workout Variation" classes="skinny" />
+  <br />
+  <div class="time-inputs">
     <DateInput />
     <Timer />
   </div>
-  <div class='exercises'>
-    {#each currentExercises as exercise, i}
+  <div class="exercises">
+    {#each currentExercises as exercise, i (`${exercise.exerciseName}-${i}`)}
       <Exercise bind:exercise={currentExercises[i]} {removeSet} {addSet} />
     {/each}
-    <button
-      class='add-exercise'
-      onclick={showExercises}
-    >
+    <button class="add-exercise" onclick={showExercises}>
       Add Exercise <i class="fa-solid fa-plus"></i>
     </button>
   </div>
+  {#if currentExercises.length}
+    <div class="action-buttons-container">
+      <button class="submit" onclick={submit}>Finish</button>
+    </div>
+  {/if}
   {#if exercisesModal}
-    <ExercisesModal {exercises} {addExercise} close={hideExercises}/>
+    <ExercisesModal {exercises} {addExercise} close={hideExercises} />
   {/if}
 </div>
 
@@ -94,11 +86,12 @@
     justify-content: space-between;
   }
 
-  div.exercises {
+  div.exercises,
+  div.action-buttons-container {
     padding: 10px 10px 0px 0px;
   }
 
-  div.exercises button.add-exercise {
+  div > button {
     background-color: transparent;
     border: 1px solid gray;
     color: white;
@@ -107,7 +100,7 @@
     cursor: pointer;
   }
 
-  div.exercises button.add-exercise:hover {
+  div > button:hover {
     color: #ffc8ff;
     border-color: #7a017a;
   }

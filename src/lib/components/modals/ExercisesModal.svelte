@@ -1,38 +1,33 @@
-<script lang='ts'>
-  import TextInput from "../TextInput.svelte";
+<script lang="ts">
+  import TextInput from '../TextInput.svelte';
 
   let { exercises, close, addExercise } = $props();
-
 </script>
 
-<div class='modal-container'>
-  <div class='modal'>
-    <TextInput 
-      id='search-exercises-to-add' 
-      label=''
-      placeholder='Search...'
-    />
-    <div class='exercises-list'>
-      {#each exercises as exercise}
-      <button onclick={() => addExercise(exercise)}>
-        <div>
-          <span class='name'>
-            {exercise.exerciseName}
-          </span>
-          <span>
-            {#if exercise.weighted}
-              {exercise.weightName}
-            {:else if exercise.isTimed}
-              Timed
-            {:else if exercise.equipment}
-              {exercise.equipment}
-            {/if}
-          </span>
-        </div>
-      </button><br>
+<div class="modal-container">
+  <div class="modal">
+    <TextInput id="search-exercises-to-add" label="" placeholder="Search..." />
+    <div class="exercises-list">
+      {#each exercises as exercise (exercise.id)}
+        <button onclick={() => addExercise(exercise)}>
+          <div>
+            <span class="name">
+              {exercise.exerciseName}
+            </span>
+            <span>
+              {#if exercise.weighted}
+                {exercise.weightName}
+              {:else if exercise.isTimed}
+                Timed
+              {:else if exercise.equipment}
+                {exercise.equipment}
+              {/if}
+            </span>
+          </div>
+        </button><br />
       {/each}
     </div>
-    <button class='close' onclick={close}>Close</button>
+    <button class="close" onclick={close}>Close</button>
   </div>
 </div>
 
@@ -43,7 +38,7 @@
     height: 100vh;
     top: 0;
     left: 0;
-    background: rgba(0, 0, 0, 0.70)
+    background: rgba(0, 0, 0, 0.7);
   }
 
   div.modal {

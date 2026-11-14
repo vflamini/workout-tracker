@@ -1,6 +1,12 @@
-<script lang='ts'>
+<script lang="ts">
+  import { resolve } from '$app/paths';
+  import type { Path } from '$app/types';
+  import { setCurrentWorkout } from '#lib/contexts/CurrentWorkout.svelte.ts';
+
   let { children } = $props();
-  let selectedRoute = $state('/');
+  let selectedRoute = $state('');
+
+  setCurrentWorkout();
 
   function selectRoute(route: string) {
     selectedRoute = route;
@@ -8,16 +14,18 @@
 </script>
 
 {#snippet navbarElement(route: string, label: string)}
-  <li><a 
-    class={{selected: selectedRoute === route}} 
-    onclick={() => selectRoute(route)} 
-    href={route}>
+  <li>
+    <a
+      class={{ selected: selectedRoute === route }}
+      onclick={() => selectRoute(route)}
+      href={resolve(route as Path)}
+    >
       {label}
     </a>
   </li>
 {/snippet}
 
-<div class='app'>
+<div class="app">
   <header>
     <nav>
       <ul>
@@ -30,10 +38,10 @@
   <aside>
     <nav>
       <ul>
-        {@render navbarElement('/', 'Dashboard')}
-        {@render navbarElement('/create-workout', 'Create Workout')}
-        {@render navbarElement('/create-exercise', 'Create Exercise')}
-        {@render navbarElement('/my-stats', 'My Stats')}
+        {@render navbarElement('', 'Dashboard')}
+        {@render navbarElement('create-workout', 'Create Workout')}
+        {@render navbarElement('create-exercise', 'Create Exercise')}
+        {@render navbarElement('my-stats', 'My Stats')}
       </ul>
     </nav>
   </aside>
@@ -45,9 +53,9 @@
 <style>
   div.app {
     display: grid;
-    grid-template-areas: 
-      "header header"
-      "sidebar content";
+    grid-template-areas:
+      'header header'
+      'sidebar content';
     grid-template-columns: 15% 1fr;
     grid-template-rows: auto 1fr;
     height: 100vh;

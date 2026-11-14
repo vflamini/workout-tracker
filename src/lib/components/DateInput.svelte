@@ -1,4 +1,4 @@
-<script lang='ts'>
+<script lang="ts">
   const today = $state(new Date());
   const year = $derived(today.getFullYear());
   const month = $derived(String(today.getMonth() + 1).padStart(2, '0')); // Month is 0-indexed
@@ -7,11 +7,11 @@
 </script>
 
 <div>
-  <input type=date value={formattedDate}>
+  <input type="date" value={formattedDate} />
 </div>
 
 <style>
-  div input[type=date] {
+  div input[type='date'] {
     background-color: transparent;
     color: white;
     outline: none;

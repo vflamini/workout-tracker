@@ -1,5 +1,5 @@
-import { db } from '$lib/db/drizzle';
-import { exercises, workouts, weights } from '$lib/db/schema';
+import { db } from '#lib/db/drizzle.ts';
+import { exercises, workouts, weights } from '#lib/db/schema.ts';
 import { eq } from 'drizzle-orm';
 
 export async function load() {
@@ -14,7 +14,7 @@ export async function load() {
       isTimed: exercises.timed
     })
     .from(exercises)
-    .leftJoin(weights, eq(exercises.weightId, weights.id));;
+    .leftJoin(weights, eq(exercises.weightId, weights.id));
   const allWorkouts = await db.select().from(workouts);
   return {
     exercises: allExercises,

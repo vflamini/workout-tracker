@@ -1,24 +1,32 @@
 export interface weight {
-  type: string,
-  defaultBaseWeight: number
+  type: string;
+  defaultBaseWeight: number;
 }
 
 export interface exercise {
-  exerciseName: string,
-  weighted: boolean,
-  weightBaseAmount: number,
-  isTimed: boolean,
-  weightId: number,
-  numHands: number,
-  equipment: string
+  exerciseName: string;
+  weighted: boolean;
+  weightBaseAmount: number;
+  isTimed: boolean;
+  weightId: number;
+  numHands: number;
+  equipment: string;
+}
+
+export interface Workout {
+  id: number;
+  time: number;
+  name: string;
+  variation: string;
+  exercises: WorkoutExercise[];
 }
 
 export interface WorkoutExercise extends exercise {
-  sets: Set[],
+  sets: Set[];
 }
 
-interface Set {
-  reps: number,
-  weight: number,
-  time: string
+export interface Set {
+  reps: number;
+  weight: number;
+  time: string;
 }

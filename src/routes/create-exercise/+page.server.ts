@@ -1,5 +1,5 @@
-import { db } from '$lib/db/drizzle';
-import { exercises, weights } from '$lib/db/schema';
+import { db } from '#lib/db/drizzle.ts';
+import { exercises, weights } from '#lib/db/schema.ts';
 
 export async function load() {
   const allExercises = await db.select().from(exercises);
