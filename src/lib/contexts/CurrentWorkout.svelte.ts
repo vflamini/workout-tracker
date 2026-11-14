@@ -117,4 +117,5 @@ export const setCurrentWorkout = () => {
     actions: currentWorkoutStore.actions
   };
   setContext(KEY, context);
+  return context;
 };

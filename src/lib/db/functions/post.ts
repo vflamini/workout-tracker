@@ -29,7 +29,6 @@ export async function insertWeight(data: weight): Promise<number | null> {
 
 export async function insertExercise(data: exercise): Promise<number | null> {
   try {
-    console.log(data);
     const res = await fetch(resolve(`api/exercises`), {
       method: 'POST',
       body: JSON.stringify({

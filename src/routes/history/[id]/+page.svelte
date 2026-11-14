@@ -17,33 +17,21 @@
   );
 
   const stats = $derived([
-    {
-      label: 'Exercises',
-      value: String(workout.exercises.length),
-      icon: 'fa-dumbbell'
-    },
-    {
-      label: 'Sets',
-      value: String(totalSets),
-      icon: 'fa-layer-group'
-    },
-    {
-      label: 'Volume',
-      value: formatVolume(totalVolume),
-      icon: 'fa-chart-simple'
-    }
+    { label: 'Exercises', value: String(workout.exercises.length) },
+    { label: 'Sets', value: String(totalSets) },
+    { label: 'Volume', value: formatVolume(totalVolume) }
   ]);
 </script>
 
 <svelte:head>
-  <title>{workout.name} · Workout History</title>
+  <title>{workout.name} · History</title>
 </svelte:head>
 
 <header class="page-header">
   <div>
     <a class="back-link" href={resolve('history')}>
       <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-      Back to history
+      History
     </a>
     <h1 class="page-title">{workout.name}</h1>
     <p class="page-subtitle">
@@ -55,7 +43,7 @@
   <div class="page-actions">
     <a class="btn btn-primary" href={resolve('create-workout')}>
       <i class="fa-solid fa-plus" aria-hidden="true"></i>
-      Log another workout
+      New workout
     </a>
   </div>
 </header>
@@ -63,7 +51,6 @@
 <section class="metric-strip" aria-label="Workout totals">
   {#each stats as stat, i (stat.label)}
     <article class="metric" style={`--index: ${i}`}>
-      <span class="metric-icon"><i class="fa-solid {stat.icon}" aria-hidden="true"></i></span>
       <span class="metric-label">{stat.label}</span>
       <strong class="metric-value">{stat.value}</strong>
     </article>
@@ -76,55 +63,54 @@
       <header class="exercise-head">
         <div>
           <h2>{exercise.exerciseName}</h2>
-          <div class="badge-row">
-            {#if exercise.weighted}
-              <span class="badge"
-                ><i class="fa-solid fa-dumbbell" aria-hidden="true"></i> Weighted</span
-              >
-            {/if}
-            {#if exercise.timed}
-              <span class="badge"
-                ><i class="fa-solid fa-stopwatch" aria-hidden="true"></i> Timed</span
-              >
-            {/if}
-            {#if exercise.equipment}
-              <span class="badge"
-                ><i class="fa-solid fa-toolbox" aria-hidden="true"></i> {exercise.equipment}</span
-              >
-            {/if}
-          </div>
+          {#if exercise.weighted || exercise.timed || exercise.equipment}
+            <div class="badge-row">
+              {#if exercise.weighted}
+                <span class="badge">Weighted</span>
+              {/if}
+              {#if exercise.timed}
+                <span class="badge">Timed</span>
+              {/if}
+              {#if exercise.equipment}
+                <span class="badge">{exercise.equipment}</span>
+              {/if}
+            </div>
+          {/if}
         </div>
-        <span class="set-count"
-          >{exercise.sets.length} set{exercise.sets.length === 1 ? '' : 's'}</span
-        >
+        <span class="set-count">
+          {exercise.sets.length} set{exercise.sets.length === 1 ? '' : 's'}
+        </span>
       </header>
 
       {#if exercise.sets.length}
-        <div class="set-list">
-          {#each exercise.sets as set, i (set.id)}
-            <div class="set-row">
-              <span class="set-index">#{i + 1}</span>
-              {#if set.weight !== null}
-                <span class="set-metric">
-                  <small>Weight</small>
-                  <strong>{set.weight}</strong>
-                </span>
+        <table class="set-table">
+          <thead>
+            <tr>
+              <th>Set</th>
+              {#if exercise.weighted}
+                <th>Weight</th>
               {/if}
-              {#if set.reps !== null}
-                <span class="set-metric">
-                  <small>Reps</small>
-                  <strong>{set.reps}</strong>
-                </span>
-              {/if}
-              {#if set.time !== null}
-                <span class="set-metric">
-                  <small>Time</small>
-                  <strong>{formatDuration(set.time)}</strong>
-                </span>
-              {/if}
-            </div>
-          {/each}
-        </div>
+              <th>{exercise.timed ? 'Time' : 'Reps'}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {#each exercise.sets as set, j (set.id)}
+              <tr>
+                <td class="set-num">{j + 1}</td>
+                {#if exercise.weighted}
+                  <td>{set.weight ?? '—'}</td>
+                {/if}
+                <td>
+                  {#if exercise.timed}
+                    {formatDuration(set.time)}
+                  {:else}
+                    {set.reps ?? '—'}
+                  {/if}
+                </td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
       {:else}
         <p class="set-empty">No sets recorded for this exercise.</p>
       {/if}
@@ -137,14 +123,21 @@
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
-    margin-bottom: 0.6rem;
+    margin-bottom: 0.55rem;
     color: var(--muted-text-color);
     font-size: 0.8rem;
     font-weight: 600;
+    transition:
+      color 140ms var(--ease-out),
+      transform 120ms var(--ease-out);
   }
 
   .back-link:hover {
-    color: var(--accent-color);
+    color: var(--pink-color);
+  }
+
+  .back-link:active {
+    transform: translateX(-2px);
   }
 
   .metric-strip {
@@ -153,7 +146,7 @@
 
   .exercise-list {
     display: grid;
-    gap: 0.75rem;
+    gap: 0.85rem;
   }
 
   .exercise-card {
@@ -175,8 +168,8 @@
   .badge-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.4rem;
-    margin-top: 0.45rem;
+    gap: 0.35rem;
+    margin-top: 0.4rem;
   }
 
   .set-count {
@@ -185,58 +178,48 @@
     white-space: nowrap;
   }
 
-  .set-list {
-    display: grid;
-    gap: 0.45rem;
+  .set-table {
+    width: 100%;
     margin-top: 0.9rem;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
   }
 
-  .set-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.6rem;
-    padding: 0.6rem;
-    border-radius: var(--radius-sm);
-    background: var(--surface-muted);
-  }
-
-  .set-index {
-    display: grid;
-    place-items: center;
-    min-width: 2rem;
-    height: 2rem;
-    border-radius: 0.55rem;
-    background: rgba(255, 200, 255, 0.06);
+  .set-table th {
+    padding: 0 0.5rem 0.4rem 0;
+    border-bottom: 1px solid var(--border-color);
     color: var(--muted-text-color);
-    font-size: 0.72rem;
+    font-size: 0.65rem;
     font-weight: 700;
-  }
-
-  .set-metric {
-    display: flex;
-    align-items: baseline;
-    gap: 0.35rem;
-    padding: 0.15rem 0.5rem;
-    border: 1px solid var(--border-color);
-    border-radius: 999px;
-    background: var(--surface-color);
-  }
-
-  .set-metric small {
-    color: var(--muted-text-color);
-    font-size: 0.64rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.09em;
+    text-align: left;
     text-transform: uppercase;
   }
 
-  .set-metric strong {
-    font-size: 0.85rem;
+  .set-table th:first-child {
+    width: 3rem;
+  }
+
+  .set-table td {
+    padding: 0.55rem 0.5rem 0.55rem 0;
+    border-bottom: 1px solid rgba(255, 200, 255, 0.055);
+    color: var(--input-text-color);
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .set-table tr:last-child td {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .set-table td.set-num {
+    color: var(--muted-text-color);
+    font-size: 0.78rem;
   }
 
   .set-empty {
-    margin-top: 0.9rem;
+    margin-top: 0.85rem;
     color: var(--muted-text-color);
     font-size: 0.82rem;
   }

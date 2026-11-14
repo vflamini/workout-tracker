@@ -9,7 +9,7 @@ export interface exercise {
   weighted: boolean;
   weightBaseAmount: number;
   isTimed: boolean;
-  weightId: number;
+  weightId: number | null;
   numHands: number;
   equipment: string;
 }

@@ -6,22 +6,22 @@
 
   let { children } = $props();
 
-  setCurrentWorkout();
+  const { workout } = setCurrentWorkout();
 
-  const navItems: { href: Path; label: string; shortLabel: string; icon: string }[] = [
-    { href: '', label: 'Dashboard', shortLabel: 'Home', icon: 'fa-house' },
-    { href: 'create-workout', label: 'Create Workout', shortLabel: 'Workout', icon: 'fa-dumbbell' },
-    {
-      href: 'create-exercise',
-      label: 'Create Exercise',
-      shortLabel: 'Exercise',
-      icon: 'fa-circle-plus'
-    },
-    { href: 'history', label: 'History', shortLabel: 'History', icon: 'fa-clock-rotate-left' },
-    { href: 'my-stats', label: 'My Stats', shortLabel: 'Stats', icon: 'fa-chart-line' }
+  const navItems: { href: Path; label: string; icon: string }[] = [
+    { href: '', label: 'Today', icon: 'fa-house' },
+    { href: 'create-workout', label: 'Workout', icon: 'fa-dumbbell' },
+    { href: 'create-exercise', label: 'Exercises', icon: 'fa-list-check' },
+    { href: 'history', label: 'History', icon: 'fa-clock-rotate-left' },
+    { href: 'my-stats', label: 'Stats', icon: 'fa-chart-line' }
   ];
 
   const pathname = $derived(page.url.pathname);
+  const activeExerciseCount = $derived(workout.exercises.length);
+  const hasDraftSession = $derived(
+    activeExerciseCount > 0 || workout.current.name.trim().length > 0
+  );
+  const showResumeChip = $derived(hasDraftSession && !isActive('create-workout'));
 
   function isActive(href: Path) {
     if (href === '') return pathname === '/';
@@ -43,15 +43,22 @@
 <div class="app-shell">
   <aside class="sidebar" aria-label="Primary navigation">
     <a class="brand" href={resolve('')} aria-label="Workout Tracker home">
-      <span class="brand-mark"><i class="fa-solid fa-bolt"></i></span>
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
+          <rect x="2" y="7" width="3" height="10" rx="1" fill="currentColor" />
+          <rect x="6" y="4.5" width="2.5" height="15" rx="1" fill="currentColor" />
+          <rect x="8.5" y="10.75" width="7" height="2.5" fill="currentColor" />
+          <rect x="15.5" y="4.5" width="2.5" height="15" rx="1" fill="currentColor" />
+          <rect x="19" y="7" width="3" height="10" rx="1" fill="currentColor" />
+        </svg>
+      </span>
       <span class="brand-copy">
         <strong>Workout</strong>
-        <span>Tracker</span>
+        <span>Log</span>
       </span>
     </a>
 
     <nav class="side-nav">
-      <span class="nav-heading">Sections</span>
       {#each navItems as item (item.href)}
         <a
           class={['nav-link', { active: isActive(item.href) }]}
@@ -60,31 +67,44 @@
         >
           <span class="nav-icon"><i class="fa-solid {item.icon}"></i></span>
           <span>{item.label}</span>
-          <i class="fa-solid fa-chevron-right nav-arrow" aria-hidden="true"></i>
         </a>
       {/each}
     </nav>
 
-    <div class="sidebar-footer">
-      <div class="local-status" title="Data is stored in database.sqlite">
-        <span class="local-dot" aria-hidden="true"></span>
-        <span class="local-copy">
-          <strong>Local data</strong>
-          <span>SQLite on this device</span>
-        </span>
+    {#if showResumeChip}
+      <div class="sidebar-footer">
+        <a class="resume-card" href={resolve('create-workout')}>
+          <span class="resume-label">In progress</span>
+          <strong>{workout.current.name.trim() || 'Untitled workout'}</strong>
+          <span class="resume-meta"
+            >{activeExerciseCount} exercise{activeExerciseCount === 1 ? '' : 's'} · Resume</span
+          >
+        </a>
       </div>
-    </div>
+    {/if}
   </aside>
 
   <header class="mobile-bar">
     <a class="brand compact" href={resolve('')} aria-label="Workout Tracker home">
-      <span class="brand-mark"><i class="fa-solid fa-bolt"></i></span>
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
+          <rect x="2" y="7" width="3" height="10" rx="1" fill="currentColor" />
+          <rect x="6" y="4.5" width="2.5" height="15" rx="1" fill="currentColor" />
+          <rect x="8.5" y="10.75" width="7" height="2.5" fill="currentColor" />
+          <rect x="15.5" y="4.5" width="2.5" height="15" rx="1" fill="currentColor" />
+          <rect x="19" y="7" width="3" height="10" rx="1" fill="currentColor" />
+        </svg>
+      </span>
       <span class="brand-copy">
         <strong>Workout</strong>
-        <span>Tracker</span>
+        <span>Log</span>
       </span>
     </a>
-    <span class="local-chip"><span class="local-dot" aria-hidden="true"></span>Local</span>
+    {#if showResumeChip}
+      <a class="resume-pill" href={resolve('create-workout')}>
+        <span>Resume ({activeExerciseCount})</span>
+      </a>
+    {/if}
   </header>
 
   <main id="main-content" class="app-main">
@@ -101,7 +121,7 @@
         aria-current={isActive(item.href) ? 'page' : undefined}
       >
         <i class="fa-solid {item.icon}"></i>
-        <span>{item.shortLabel}</span>
+        <span>{item.label}</span>
       </a>
     {/each}
   </nav>
@@ -146,33 +166,37 @@
     top: 0;
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 1.75rem;
     height: 100dvh;
-    padding: 1.5rem 1rem;
+    padding: 1.35rem 0.9rem;
     border-right: 1px solid var(--border-color);
-    background: rgba(42, 36, 49, 0.78);
+    background: rgba(42, 36, 49, 0.8);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
-    backdrop-filter: blur(18px);
+    backdrop-filter: blur(20px) saturate(150%);
     overflow-y: auto;
   }
 
   .brand {
     display: inline-flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.4rem;
+    gap: 0.7rem;
+    padding: 0.35rem;
     border-radius: var(--radius-sm);
+    transition: transform 120ms var(--ease-out);
+  }
+
+  .brand:active {
+    transform: scale(0.98);
   }
 
   .brand-mark {
     display: grid;
     place-items: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 0.8rem;
+    width: 2.35rem;
+    height: 2.35rem;
+    border-radius: var(--radius-sm);
     background: var(--accent-strong);
     color: #fff;
-    font-size: 1rem;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
   }
 
@@ -183,51 +207,49 @@
   }
 
   .brand-copy strong {
-    font-size: 0.98rem;
+    font-size: 0.95rem;
     letter-spacing: -0.02em;
   }
 
   .brand-copy span {
     color: var(--muted-text-color);
-    font-size: 0.76rem;
-    letter-spacing: 0.08em;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
   }
 
   .side-nav {
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
-  }
-
-  .nav-heading {
-    padding: 0 0.75rem 0.35rem;
-    color: var(--muted-text-color);
-    font-size: 0.66rem;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
+    gap: 0.25rem;
   }
 
   .nav-link {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.72rem 0.75rem;
+    gap: 0.7rem;
+    padding: 0.65rem 0.7rem;
     border: 1px solid transparent;
     border-radius: var(--radius-sm);
     color: var(--muted-text-color);
-    font-size: 0.9rem;
+    font-size: 0.88rem;
     font-weight: 600;
     transition:
-      background-color 160ms var(--ease-out),
-      border-color 160ms var(--ease-out),
-      color 160ms var(--ease-out);
+      background-color 140ms var(--ease-out),
+      border-color 140ms var(--ease-out),
+      color 140ms var(--ease-out),
+      transform 120ms var(--ease-out);
   }
 
   .nav-link:hover {
     background: rgba(255, 200, 255, 0.06);
     color: var(--main-text-color);
+  }
+
+  .nav-link:active,
+  .mobile-nav-link:active {
+    transform: scale(0.975);
+    transition: transform 80ms ease-out;
   }
 
   .nav-link.active {
@@ -239,12 +261,12 @@
   .nav-icon {
     display: grid;
     place-items: center;
-    width: 1.9rem;
-    height: 1.9rem;
-    border-radius: 0.6rem;
-    background: rgba(255, 200, 255, 0.06);
+    width: 1.85rem;
+    height: 1.85rem;
+    border-radius: 0.45rem;
+    background: rgba(255, 200, 255, 0.055);
     color: inherit;
-    font-size: 0.82rem;
+    font-size: 0.8rem;
   }
 
   .nav-link.active .nav-icon {
@@ -253,89 +275,66 @@
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
   }
 
-  .nav-arrow {
-    margin-left: auto;
-    font-size: 0.65rem;
-    opacity: 0;
-    transition: opacity 160ms var(--ease-out);
-  }
-
-  .nav-link:hover .nav-arrow,
-  .nav-link.active .nav-arrow {
-    opacity: 0.7;
-  }
-
   .sidebar-footer {
-    display: grid;
-    gap: 0.85rem;
     margin-top: auto;
   }
 
-  .local-status {
-    display: flex;
-    align-items: center;
-    gap: 0.7rem;
-    padding: 0.7rem;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    background: var(--surface-muted);
-  }
-
-  .local-dot {
-    position: relative;
-    display: block;
-    flex: 0 0 auto;
-    width: 0.55rem;
-    height: 0.55rem;
-    border-radius: 50%;
-    background: var(--accent-color);
-  }
-
-  .local-dot::after {
-    position: absolute;
-    inset: -0.28rem;
-    border-radius: 50%;
-    content: '';
-    background: var(--accent-soft);
-    animation: breathe 3.8s ease-in-out infinite;
-  }
-
-  .local-copy {
+  .resume-card {
     display: flex;
     flex-direction: column;
-    line-height: 1.2;
+    gap: 0.15rem;
+    padding: 0.75rem 0.85rem;
+    border: 1px solid rgba(154, 75, 176, 0.48);
+    border-radius: var(--radius-sm);
+    background: var(--accent-soft);
+    transition:
+      border-color 140ms var(--ease-out),
+      transform 120ms var(--ease-out);
   }
 
-  .local-copy strong {
-    font-size: 0.8rem;
+  .resume-card:hover {
+    border-color: var(--accent-color);
   }
 
-  .local-copy span {
+  .resume-card:active {
+    transform: scale(0.98);
+  }
+
+  .resume-label {
+    color: var(--pink-color);
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .resume-card strong {
+    font-size: 0.85rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .resume-meta {
     color: var(--muted-text-color);
-    font-size: 0.7rem;
+    font-size: 0.72rem;
   }
 
-  .local-chip {
+  .resume-pill {
     display: inline-flex;
     align-items: center;
-    gap: 0.45rem;
-    padding: 0.35rem 0.55rem;
-    border: 1px solid var(--border-color);
+    padding: 0.35rem 0.65rem;
+    border: 1px solid rgba(154, 75, 176, 0.55);
     border-radius: 999px;
-    background: var(--surface-muted);
-    color: var(--muted-text-color);
-    font-size: 0.66rem;
-    font-weight: 600;
-  }
-
-  .local-chip .local-dot {
-    width: 0.42rem;
-    height: 0.42rem;
+    background: var(--accent-soft);
+    color: var(--pink-color);
+    font-size: 0.72rem;
+    font-weight: 700;
   }
 
   .app-main {
     min-width: 0;
-    padding: 2.5rem clamp(1rem, 4vw, 3rem) 4rem;
+    padding: 2.25rem clamp(1rem, 4vw, 3rem) 4rem;
   }
 
   .page-container {
@@ -365,11 +364,11 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0.75rem 1rem;
-      border-bottom: 1px solid var(--border-color);
-      background: rgba(42, 36, 49, 0.85);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
-      backdrop-filter: blur(18px);
+      padding: 0.7rem 1rem;
+      border-bottom: 1px solid rgba(255, 200, 255, 0.08);
+      background: rgba(42, 36, 49, 0.8);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px) saturate(160%);
     }
 
     .mobile-bar .brand {
@@ -377,14 +376,12 @@
     }
 
     .mobile-bar .brand-mark {
-      width: 2.1rem;
-      height: 2.1rem;
-      border-radius: 0.65rem;
-      font-size: 0.85rem;
+      width: 2rem;
+      height: 2rem;
     }
 
     .app-main {
-      padding: 1.5rem 1rem 2rem;
+      padding: 1.35rem 1rem 2rem;
     }
 
     .mobile-nav {
@@ -394,11 +391,11 @@
       display: grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 0.25rem;
-      padding: 0.5rem 0.55rem calc(0.5rem + env(safe-area-inset-bottom));
-      border-top: 1px solid var(--border-color);
-      background: rgba(42, 36, 49, 0.94);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-      backdrop-filter: blur(20px);
+      padding: 0.45rem 0.5rem calc(0.45rem + env(safe-area-inset-bottom));
+      border-top: 1px solid rgba(255, 200, 255, 0.08);
+      background: rgba(42, 36, 49, 0.88);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px) saturate(160%);
     }
 
     .mobile-nav-link {
@@ -413,12 +410,13 @@
       font-size: 0.64rem;
       font-weight: 600;
       transition:
-        background-color 160ms var(--ease-out),
-        color 160ms var(--ease-out);
+        background-color 140ms var(--ease-out),
+        color 140ms var(--ease-out),
+        transform 120ms var(--ease-out);
     }
 
     .mobile-nav-link i {
-      font-size: 1rem;
+      font-size: 0.95rem;
     }
 
     .mobile-nav-link.active {
@@ -432,6 +430,15 @@
       animation: none;
       width: 100%;
       opacity: 0.6;
+    }
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    .sidebar,
+    .mobile-bar,
+    .mobile-nav {
+      background: var(--background-color);
+      backdrop-filter: none;
     }
   }
 </style>
