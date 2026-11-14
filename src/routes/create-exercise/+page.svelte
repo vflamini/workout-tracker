@@ -1,6 +1,6 @@
-<script lang='ts'>
-  import TextInput from '$lib/components/TextInput.svelte';
-  import { insertExercise, insertWeight } from '$lib/db/functions/post.js';
+<script lang="ts">
+  import TextInput from '#lib/components/TextInput.svelte';
+  import { insertExercise, insertWeight } from '#lib/db/functions/post.js';
 
   let { data } = $props();
 
@@ -10,12 +10,12 @@
     numHands: 0,
     baseAmount: 0,
     weightType: ''
-  })
+  });
 
   let otherEquipment = $state({
     exists: false,
     equipment: ''
-  })
+  });
 
   let isTimed = $state(false);
 
@@ -31,9 +31,9 @@
     otherEquipment = {
       exists: false,
       equipment: ''
-    }
+    };
 
-    isTimed = false
+    isTimed = false;
   }
 
   function toggleWeighted() {
@@ -49,7 +49,7 @@
   }
 
   function setWeightType(weightType: string) {
-    weightProperties.weightType = weightType
+    weightProperties.weightType = weightType;
   }
 
   function setNumHands(numHands: number) {
@@ -59,7 +59,9 @@
   async function submitExercise() {
     let weightId: number | null = null;
     if (data.weights) {
-      const weightRow = data.weights.filter(weight => weight.type === weightProperties.weightType);
+      const weightRow = data.weights.filter(
+        (weight) => weight.type === weightProperties.weightType
+      );
       if (weightRow.length) {
         weightId = weightRow[0].id;
       }
@@ -71,7 +73,7 @@
       });
     }
     if (weightId) {
-      const exerciseId = await insertExercise({
+      await insertExercise({
         exerciseName: exerciseName,
         weighted: weightProperties.weighted,
         weightBaseAmount: weightProperties.baseAmount,
@@ -86,17 +88,17 @@
 </script>
 
 {#snippet weightTypeSelectButton(weightType: string)}
-  <button 
-    class={{selected: weightProperties.weightType === weightType}}
+  <button
+    class={{ selected: weightProperties.weightType === weightType }}
     onclick={() => setWeightType(weightType)}
-  >{weightType}
+    >{weightType}
   </button>
 {/snippet}
 
 {#snippet handSelectButton(numHands: number)}
   <button
     aria-label={`${numHands == 1 ? 'one' : 'two'} hand`}
-    class={{selected: weightProperties.numHands === numHands}}
+    class={{ selected: weightProperties.numHands === numHands }}
     onclick={() => setNumHands(numHands)}
   >
     <i class={`fa-solid fa-hand${numHands === 2 ? 's' : ''}`}></i>
@@ -104,24 +106,17 @@
 {/snippet}
 
 <div>
-  <TextInput
-    id={'exercise-name'}
-    label={'Name'}
-    bind:bind={exerciseName}
-  />
-  <div class='property-toggles'>
-    <div class='property'>
-      <button 
-        class={{selected: weightProperties.weighted}}
-        onclick={toggleWeighted}
-      >
+  <TextInput id="exercise-name" label="Name" bind:bind={exerciseName} />
+  <div class="property-toggles">
+    <div class="property">
+      <button class={{ selected: weightProperties.weighted }} onclick={toggleWeighted}>
         <i class="fa-solid fa-dumbbell"></i>
-        <br><br>
+        <br /><br />
         <span>{weightProperties.weighted ? 'Weighted' : 'Not Weighted'}</span>
       </button>
       {#if weightProperties.weighted}
-        <div class='property-inputs'>
-          <div class='weight-type'>
+        <div class="property-inputs">
+          <div class="weight-type">
             {@render weightTypeSelectButton('Barbell')}
             {@render weightTypeSelectButton('Dumbbell')}
             {@render weightTypeSelectButton('Curl Bar')}
@@ -129,51 +124,41 @@
             {@render weightTypeSelectButton('Plate')}
             {@render weightTypeSelectButton('Band')}
           </div>
-          <div class='num-hands'>
+          <div class="num-hands">
             {@render handSelectButton(1)}
             {@render handSelectButton(2)}
           </div>
         </div>
       {/if}
     </div>
-    <div class='property'>
-      <button 
-        class={{selected: isTimed}}
-        onclick={toggleTimed}
-      >
+    <div class="property">
+      <button class={{ selected: isTimed }} onclick={toggleTimed}>
         <i class="fa-solid fa-stopwatch"></i>
-        <br><br>
+        <br /><br />
         <span>{isTimed ? 'Timed' : 'Not Timed'}</span>
       </button>
     </div>
-    <div class='property'>
-      <button 
-        class={{selected: otherEquipment.exists}}
-        onclick={toggleOtherEquipment}
-      >
+    <div class="property">
+      <button class={{ selected: otherEquipment.exists }} onclick={toggleOtherEquipment}>
         <i class="fa-solid fa-toolbox"></i>
-        <br><br>
+        <br /><br />
         <span>{otherEquipment.exists ? 'Involves Other Equipment' : 'No Other Equipment'}</span>
       </button>
       {#if otherEquipment.exists}
-        <div class='property-inputs'>
+        <div class="property-inputs">
           <TextInput
-            id={'other-equipment-name'}
-            label={'Equipment'}
-            classes={'small'}
+            id="other-equipment-name"
+            label="Equipment"
+            classes="small"
             bind:bind={otherEquipment.equipment}
           />
         </div>
       {/if}
     </div>
   </div>
-  <div class='muscle-target'>
-    
-  </div>
-  <div class='submit-btn-container'>
-    <button onclick={submitExercise} class='submit'>
-      Create Exercise
-    </button>
+  <div class="muscle-target"></div>
+  <div class="submit-btn-container">
+    <button onclick={submitExercise} class="submit"> Create Exercise </button>
   </div>
 </div>
 
@@ -183,7 +168,7 @@
     display: flex;
     justify-content: space-between;
   }
-  
+
   div.property {
     width: 33%;
     display: flex;
@@ -268,5 +253,4 @@
     width: 100%;
     text-align: center;
   }
-
 </style>

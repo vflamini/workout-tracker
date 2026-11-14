@@ -1,21 +1,20 @@
-import { json } from '@sveltejs/kit';
-import { db } from '$lib/db/drizzle';
-import { weights } from '$lib/db/schema';
+import type { RequestEvent } from '@sveltejs/kit';
+import { db } from '#lib/db/drizzle.ts';
+import { weights } from '#lib/db/schema.ts';
 
 export async function GET() {
   const allWeights = await db.select().from(weights);
-  return json(allWeights);
+  return Response.json(allWeights);
 }
 
-export async function POST({ request }) {
-  const {
-    type, defaultBaseWeight
-  } = await request.json();
+export async function POST({ request }: RequestEvent) {
+  const { type, defaultBaseWeight } = await request.json();
   const [newWeight] = await db
     .insert(weights)
     .values({
-      type, defaultBaseWeight
+      type,
+      defaultBaseWeight
     })
     .returning();
-  return json({ id: newWeight.id });
+  return Response.json({ id: newWeight.id });
 }

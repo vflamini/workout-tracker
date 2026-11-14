@@ -1,17 +1,16 @@
-<script lang='ts'>
-  let {
-    id, label, bind = $bindable(''), classes = '',
-    placeholder = ''
-  } = $props();
+<script lang="ts">
+  let { id, label, bind = $bindable(''), classes = '', placeholder = '' } = $props();
 </script>
 
-<div class={{
-  input: true,
-  small: classes.includes('small'),
-  skinny: classes.includes('skinny')
-}}>
+<div
+  class={{
+    input: true,
+    small: classes.includes('small'),
+    skinny: classes.includes('skinny')
+  }}
+>
   <label for={id}>{label}</label>
-  <input id={id} placeholder={placeholder} type='text' bind:value={bind}>
+  <input {id} {placeholder} type="text" bind:value={bind} />
 </div>
 
 <style>
@@ -33,11 +32,12 @@
     font-size: 0.8rem;
   }
 
-  div.input:focus-within, div.input.skinny:focus-within {
+  div.input:focus-within,
+  div.input.skinny:focus-within {
     border-color: #7a017a;
   }
 
-  div.input input[type=text] {
+  div.input input[type='text'] {
     width: 100%;
     background-color: transparent;
     outline: none;
@@ -49,7 +49,7 @@
     color: #ffc8ff;
   }
 
-  div.input.small input[type=text] {
+  div.input.small input[type='text'] {
     font-size: 1rem;
   }
 
@@ -57,7 +57,7 @@
     border-color: #4e4e4e;
   }
 
-  div.input.skinny input[type=text] {
+  div.input.skinny input[type='text'] {
     font-size: 1rem;
     width: 80%;
   }

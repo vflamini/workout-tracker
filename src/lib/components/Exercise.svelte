@@ -1,80 +1,63 @@
-<script lang='ts'>
-  import NumberInput from "./NumberInput.svelte";
-  import TimeInput from "./TimeInput.svelte";
-  
-  let {
-    exercise = $bindable(), addSet, removeSet
-  } = $props();
+<script lang="ts">
+  import NumberInput from './NumberInput.svelte';
+  import TimeInput from './TimeInput.svelte';
 
+  let { exercise = $bindable(), addSet, removeSet } = $props();
 </script>
 
 <div>
   <span>{exercise.exerciseName}</span>
   {#if exercise.weighted}
-    <button class='info'>
-      <i class='fa-solid fa-dumbbell'></i>
+    <button class="info">
+      <i class="fa-solid fa-dumbbell"></i>
       {exercise.weightName}
     </button>
   {/if}
   {#if exercise.isTimed}
-    <button class='info'>
-      <i class='fa-solid fa-stopwatch'></i>
+    <button class="info">
+      <i class="fa-solid fa-stopwatch"></i>
       Timed
     </button>
   {/if}
   {#if exercise.equipment}
-    <button class='info'>
+    <button class="info">
       {exercise.equipment}
     </button>
   {/if}
-  <button
-    class='add-set'
-    onclick={() => addSet(exercise)}
-  ><i class='fa-solid fa-plus'></i> Add Set</button>
-  <br>
-  <div class='sets'>
-    {#each exercise.sets as set, i}
-      <div class='set-row'>
+  <button class="add-set" onclick={() => addSet(exercise)}
+    ><i class="fa-solid fa-plus"></i> Add Set</button
+  >
+  <br />
+  <div class="sets">
+    {#each exercise.sets as set, i (i)}
+      <div class="set-row">
         <span>#{i + 1} </span>
         {#if exercise.weighted}
           <NumberInput
             id={`set-${i}-weight`}
-            label={'Weight'}
+            label="Weight"
             step={0.5}
             classes={['skinny', 'short']}
             bind:bind={set.weight}
           />
-          <NumberInput
-            id={`set-${i}-reps`}
-            label={'Reps'}
-            min={1}
-            classes={['skinny', 'short']}
-            bind:bind={set.reps}
-          />
-        {:else if exercise.otherEquipment}
-          <NumberInput
-            id={`set-${i}-reps`}
-            label={'Reps'}
-            min={1}
-            classes={['skinny', 'short']}
-            bind:bind={set.reps}
-          />
         {/if}
         {#if exercise.isTimed}
-          <TimeInput
-            id={`set-${i}-time`}
-            label={'Time'}
-            bind:bind={set.time}
+          <TimeInput id={`set-${i}-time`} label="Time" bind:bind={set.time} />
+        {:else}
+          <NumberInput
+            id={`set-${i}-reps`}
+            label="Reps"
+            min={1}
+            classes={['skinny', 'short']}
+            bind:bind={set.reps}
           />
         {/if}
-        <button
-          class='remove-set'
-          onclick={() => removeSet(exercise, i)}>
-          <i class='fa-solid fa-minus'></i>
+        <button class="remove-set" onclick={() => removeSet(exercise, i)}>
+          <i class="fa-solid fa-minus"></i>
           Remove
         </button>
       </div>
-      <br>
+      <br />
     {/each}
   </div>
 </div>
@@ -88,7 +71,8 @@
     border: 1px solid var(--border-highlight-color);
   }
 
-  div button.add-set, button.remove-set {
+  div button.add-set,
+  button.remove-set {
     border: 1px solid gray;
   }
 

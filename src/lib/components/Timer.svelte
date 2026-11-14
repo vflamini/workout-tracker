@@ -1,5 +1,5 @@
-<script lang='ts'>
-    import { onMount } from "svelte";
+<script lang="ts">
+  import { onMount } from 'svelte';
 
   let s = $state(0);
   let displayedSeconds = $derived(s % 60);
@@ -13,7 +13,7 @@
     const formatter = new Intl.NumberFormat('en-US', {
       minimumIntegerDigits: minIntegerDigits,
       maximumFractionDigits: maxFractionDigits,
-      useGrouping: false,
+      useGrouping: false
     });
 
     return formatter.format(num);
@@ -21,14 +21,14 @@
 
   onMount(() => {
     return clearInterval(timer);
-  })
+  });
 
   function onclick() {
     toggled = !toggled;
     if (toggled) {
       timer = setInterval(() => {
         s += 1;
-      }, 1000)
+      }, 1000);
     } else {
       clearInterval(timer);
     }
@@ -40,10 +40,10 @@
 </script>
 
 <div>
-  <button {onclick} class={{timer: true, toggled}}>
+  <button {onclick} class={{ timer: true, toggled }}>
     {`${formatNumber(h, 2)}:${formatNumber(displayedMinutes, 2)}:${formatNumber(displayedSeconds, 2)}`}
   </button>
-  <button onclick={reset} aria-label='reset timer' class='reset'>
+  <button onclick={reset} aria-label="reset timer" class="reset">
     <i class="fa-solid fa-arrows-rotate"></i>
   </button>
 </div>
@@ -71,5 +71,4 @@
   div button.reset:hover {
     background-color: #3d003d;
   }
-
 </style>

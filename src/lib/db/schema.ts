@@ -1,10 +1,4 @@
-import {
-  sqliteTable,
-  text,
-  integer,
-  real,
-  primaryKey
-} from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, real, primaryKey } from 'drizzle-orm/sqlite-core';
 
 export const weights = sqliteTable('weights', {
   id: integer('id').notNull().primaryKey({ autoIncrement: true }),
@@ -32,15 +26,26 @@ export const exercises = sqliteTable('exercises', {
   otherEquipment: text('other_equipment')
 });
 
-export const workoutExercises = sqliteTable('workout_exercises', 
+export const workoutExercises = sqliteTable(
+  'workout_exercises',
   {
-    exerciseId: integer('exercise_id').notNull().references(() => exercises.id),
-    workoutId: integer('workout_id').notNull().references(() => workouts.id),
-    weight: real('weight'),
-    time: real('time'),
-    reps: integer('reps')
+    id: integer('id').notNull().primaryKey({ autoIncrement: true }),
+    exerciseId: integer('exercise_id')
+      .notNull()
+      .references(() => exercises.id),
+    workoutId: integer('workout_id')
+      .notNull()
+      .references(() => workouts.id)
   },
-  (table) => [
-    primaryKey({ columns: [table.exerciseId, table.workoutId] }),
-  ]
+  (table) => [primaryKey({ columns: [table.exerciseId, table.workoutId] })]
 );
+
+export const sets = sqliteTable('sets', {
+  id: integer('id').notNull().primaryKey({ autoIncrement: true }),
+  workoutExerciseId: integer('workout_exercise_id')
+    .notNull()
+    .references(() => workoutExercises.id),
+  weight: real('weight'),
+  time: real('time'),
+  reps: integer('reps')
+});
