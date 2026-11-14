@@ -238,7 +238,7 @@
   }
 
   .activity-item:hover {
-    border-color: rgba(52, 211, 153, 0.35);
+    border-color: rgba(194, 107, 255, 0.4);
     background: var(--surface-raised);
   }
 
@@ -248,7 +248,7 @@
     width: 2.1rem;
     height: 2.1rem;
     border-radius: 0.6rem;
-    background: rgba(148, 163, 184, 0.08);
+    background: rgba(255, 200, 255, 0.06);
     color: var(--accent-color);
     font-size: 0.75rem;
   }
@@ -302,7 +302,7 @@
   }
 
   .action-link:hover {
-    border-color: rgba(52, 211, 153, 0.4);
+    border-color: rgba(194, 107, 255, 0.42);
     background: var(--surface-raised);
   }
 

@@ -183,7 +183,7 @@
     padding: 1rem 0.75rem 0;
     border-radius: var(--radius-md);
     background:
-      linear-gradient(to top, rgba(148, 163, 184, 0.06) 1px, transparent 1px) 0 0 / 100% 25%,
+      linear-gradient(to top, rgba(255, 200, 255, 0.055) 1px, transparent 1px) 0 0 / 100% 25%,
       var(--surface-muted);
   }
 
@@ -211,14 +211,14 @@
     flex: 1;
     max-width: 3.2rem;
     border-radius: 0.45rem 0.45rem 0 0;
-    background: rgba(148, 163, 184, 0.04);
+    background: rgba(255, 200, 255, 0.035);
     overflow: hidden;
   }
 
   .bar-fill {
     width: 100%;
     border-radius: 0.45rem 0.45rem 0 0;
-    background: linear-gradient(180deg, var(--accent-color), rgba(16, 185, 129, 0.22));
+    background: linear-gradient(180deg, #d98cff, rgba(122, 1, 122, 0.3));
     transition: height 300ms var(--ease-out);
   }
 
@@ -278,7 +278,7 @@
     width: 1.7rem;
     height: 1.7rem;
     border-radius: 0.5rem;
-    background: rgba(148, 163, 184, 0.08);
+    background: rgba(255, 200, 255, 0.06);
     color: var(--muted-text-color);
     font-size: 0.72rem;
     font-weight: 700;
@@ -306,7 +306,7 @@
   .top-bar {
     height: 0.45rem;
     border-radius: 999px;
-    background: rgba(148, 163, 184, 0.08);
+    background: rgba(255, 200, 255, 0.06);
     overflow: hidden;
   }
 
