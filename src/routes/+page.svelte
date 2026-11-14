@@ -41,11 +41,8 @@
 <header class="page-header">
   <div>
     <p class="eyebrow">Overview</p>
-    <h1 class="page-title">Welcome back</h1>
-    <p class="page-subtitle">
-      Your training hub. Start a session, grow your exercise library, and keep an eye on the work
-      you have put in.
-    </p>
+    <h1 class="page-title">Training desk</h1>
+    <p class="page-subtitle">Start a session, add to the library, or check the log.</p>
   </div>
   <div class="page-actions">
     <a class="btn btn-primary" href={resolve('create-workout')}>
@@ -55,13 +52,13 @@
   </div>
 </header>
 
-<section class="stat-grid" aria-label="Training totals">
-  {#each stats as stat (stat.label)}
-    <article class="stat-card card">
-      <span class="stat-icon"><i class="fa-solid {stat.icon}" aria-hidden="true"></i></span>
-      <span class="stat-label">{stat.label}</span>
-      <strong class="stat-value">{stat.value}</strong>
-      <span class="stat-meta">{stat.meta}</span>
+<section class="metric-strip" aria-label="Training totals">
+  {#each stats as stat, i (stat.label)}
+    <article class="metric" style={`--index: ${i}`}>
+      <span class="metric-icon"><i class="fa-solid {stat.icon}" aria-hidden="true"></i></span>
+      <span class="metric-label">{stat.label}</span>
+      <strong class="metric-value">{stat.value}</strong>
+      <span class="metric-meta">{stat.meta}</span>
     </article>
   {/each}
 </section>
@@ -78,9 +75,13 @@
 
     {#if data.recent.length}
       <ul class="activity-list">
-        {#each data.recent as workout (workout.id)}
+        {#each data.recent as workout, i (workout.id)}
           <li>
-            <a class="activity-item" href={resolve('/history/[id]', { id: String(workout.id) })}>
+            <a
+              class="activity-item reveal"
+              style={`--index: ${i}`}
+              href={resolve('/history/[id]', { id: String(workout.id) })}
+            >
               <span class="activity-icon"><i class="fa-solid fa-bolt" aria-hidden="true"></i></span>
               <span class="activity-copy">
                 <strong>{workout.name}</strong>
@@ -108,109 +109,61 @@
     <section class="card action-card" aria-labelledby="quick-heading">
       <div class="section-head">
         <div>
-          <h2 id="quick-heading">Quick actions</h2>
-          <p>Jump straight into the next step.</p>
+          <h2 id="quick-heading">Next move</h2>
+          <p>Pick up where you left off.</p>
         </div>
       </div>
 
       <div class="action-list">
-        <a class="action-link" href={resolve('create-workout')}>
+        <a class="action-link reveal" style="--index: 0" href={resolve('create-workout')}>
           <span class="action-icon"><i class="fa-solid fa-play" aria-hidden="true"></i></span>
           <span>
             <strong>Start a workout</strong>
-            <span>Log exercises and sets</span>
+            <span>Open a blank session</span>
           </span>
           <i class="fa-solid fa-arrow-right action-arrow" aria-hidden="true"></i>
         </a>
-        <a class="action-link" href={resolve('create-exercise')}>
+        <a class="action-link reveal" style="--index: 1" href={resolve('create-exercise')}>
           <span class="action-icon"><i class="fa-solid fa-plus" aria-hidden="true"></i></span>
           <span>
             <strong>Add an exercise</strong>
-            <span>Expand your library</span>
+            <span>Add a movement</span>
           </span>
           <i class="fa-solid fa-arrow-right action-arrow" aria-hidden="true"></i>
         </a>
-        <a class="action-link" href={resolve('my-stats')}>
+        <a class="action-link reveal" style="--index: 2" href={resolve('my-stats')}>
           <span class="action-icon"><i class="fa-solid fa-chart-line" aria-hidden="true"></i></span>
           <span>
-            <strong>Review progress</strong>
-            <span>See your training trends</span>
+            <strong>Open stats</strong>
+            <span>Weekly volume and top lifts</span>
           </span>
           <i class="fa-solid fa-arrow-right action-arrow" aria-hidden="true"></i>
         </a>
       </div>
     </section>
 
-    <section class="card tip-card">
-      <span class="tip-icon"><i class="fa-solid fa-lightbulb" aria-hidden="true"></i></span>
-      <p><strong>Consistency tip</strong> Small sessions still count. Show up, log the work.</p>
+    <section class="card flow-card" aria-labelledby="flow-heading">
+      <span class="eyebrow">Session flow</span>
+      <h2 id="flow-heading">From blank page to saved log</h2>
+      <ol class="flow-list">
+        <li><span>01</span> Name the workout</li>
+        <li><span>02</span> Add exercises and sets</li>
+        <li><span>03</span> Finish to save it to history</li>
+      </ol>
     </section>
   </div>
 </div>
 
 <style>
-  .stat-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.85rem;
+  .metric-strip {
     margin-bottom: 1.5rem;
-  }
-
-  .stat-card {
-    position: relative;
-    display: grid;
-    gap: 0.15rem;
-    padding: 1.1rem;
-    overflow: hidden;
-  }
-
-  .stat-card::after {
-    position: absolute;
-    right: -2rem;
-    bottom: -2rem;
-    width: 6rem;
-    height: 6rem;
-    border-radius: 50%;
-    content: '';
-    background: var(--accent-soft);
-  }
-
-  .stat-icon {
-    display: grid;
-    place-items: center;
-    width: 2.2rem;
-    height: 2.2rem;
-    margin-bottom: 0.5rem;
-    border-radius: 0.65rem;
-    background: var(--accent-soft);
-    color: var(--accent-color);
-    font-size: 0.85rem;
-  }
-
-  .stat-label {
-    color: var(--muted-text-color);
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-
-  .stat-value {
-    font-size: 2rem;
-    font-weight: 750;
-    letter-spacing: -0.03em;
-    line-height: 1.1;
-  }
-
-  .stat-meta {
-    color: var(--muted-text-color);
-    font-size: 0.76rem;
   }
 
   .dashboard-grid {
     display: grid;
     grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
     gap: 1rem;
+    align-items: start;
   }
 
   .recent-card,
@@ -234,12 +187,14 @@
     background: var(--surface-muted);
     transition:
       border-color 160ms var(--ease-out),
-      background-color 160ms var(--ease-out);
+      background-color 160ms var(--ease-out),
+      transform 160ms var(--ease-out);
   }
 
   .activity-item:hover {
-    border-color: rgba(194, 107, 255, 0.4);
+    border-color: rgba(154, 75, 176, 0.45);
     background: var(--surface-raised);
+    transform: translateY(-1px);
   }
 
   .activity-icon {
@@ -298,12 +253,14 @@
     background: var(--surface-muted);
     transition:
       border-color 160ms var(--ease-out),
-      background-color 160ms var(--ease-out);
+      background-color 160ms var(--ease-out),
+      transform 160ms var(--ease-out);
   }
 
   .action-link:hover {
-    border-color: rgba(194, 107, 255, 0.42);
+    border-color: rgba(154, 75, 176, 0.48);
     background: var(--surface-raised);
+    transform: translateY(-1px);
   }
 
   .action-icon {
@@ -338,25 +295,33 @@
     font-size: 0.7rem;
   }
 
-  .tip-card {
+  .flow-card {
+    padding: 1.1rem;
+  }
+
+  .flow-card h2 {
+    margin-top: 0.25rem;
+    font-size: 0.98rem;
+  }
+
+  .flow-list {
+    display: grid;
+    gap: 0.55rem;
+    margin-top: 0.9rem;
+  }
+
+  .flow-list li {
     display: flex;
-    align-items: flex-start;
+    align-items: baseline;
     gap: 0.65rem;
-    padding: 1rem;
-  }
-
-  .tip-icon {
-    color: var(--warning-output-color);
-  }
-
-  .tip-card p {
     color: var(--muted-text-color);
-    font-size: 0.8rem;
-    line-height: 1.45;
+    font-size: 0.78rem;
   }
 
-  .tip-card strong {
-    color: var(--main-text-color);
+  .flow-list span {
+    color: var(--warning-output-color);
+    font-size: 0.68rem;
+    font-weight: 700;
   }
 
   .compact-empty {
@@ -371,21 +336,6 @@
   }
 
   @media (max-width: 640px) {
-    .stat-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .stat-card {
-      grid-template-columns: auto 1fr;
-      align-items: center;
-      column-gap: 0.85rem;
-    }
-
-    .stat-icon {
-      grid-row: span 3;
-      margin-bottom: 0;
-    }
-
     .activity-date {
       display: none;
     }

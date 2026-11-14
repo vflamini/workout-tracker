@@ -51,7 +51,7 @@
     </a>
 
     <nav class="side-nav">
-      <span class="nav-heading">Menu</span>
+      <span class="nav-heading">Sections</span>
       {#each navItems as item (item.href)}
         <a
           class={['nav-link', { active: isActive(item.href) }]}
@@ -66,14 +66,13 @@
     </nav>
 
     <div class="sidebar-footer">
-      <div class="profile-chip">
-        <span class="avatar">V</span>
-        <span class="profile-copy">
-          <strong>Your profile</strong>
-          <span>Local athlete</span>
+      <div class="local-status" title="Data is stored in database.sqlite">
+        <span class="local-dot" aria-hidden="true"></span>
+        <span class="local-copy">
+          <strong>Local data</strong>
+          <span>SQLite on this device</span>
         </span>
       </div>
-      <p class="sidebar-note">Track consistently. Progress follows.</p>
     </div>
   </aside>
 
@@ -85,7 +84,7 @@
         <span>Tracker</span>
       </span>
     </a>
-    <a class="avatar" href={resolve('my-stats')} aria-label="View your stats">V</a>
+    <span class="local-chip"><span class="local-dot" aria-hidden="true"></span>Local</span>
   </header>
 
   <main id="main-content" class="app-main">
@@ -152,6 +151,7 @@
     padding: 1.5rem 1rem;
     border-right: 1px solid var(--border-color);
     background: rgba(42, 36, 49, 0.78);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
     backdrop-filter: blur(18px);
     overflow-y: auto;
   }
@@ -170,10 +170,10 @@
     width: 2.5rem;
     height: 2.5rem;
     border-radius: 0.8rem;
-    background: linear-gradient(135deg, #d98cff, #7a017a);
+    background: var(--accent-strong);
     color: #fff;
     font-size: 1rem;
-    box-shadow: 0 8px 24px rgba(122, 1, 122, 0.35);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
   }
 
   .brand-copy {
@@ -231,7 +231,7 @@
   }
 
   .nav-link.active {
-    border-color: rgba(194, 107, 255, 0.35);
+    border-color: rgba(154, 75, 176, 0.45);
     background: var(--accent-soft);
     color: var(--pink-color);
   }
@@ -248,8 +248,9 @@
   }
 
   .nav-link.active .nav-icon {
-    background: linear-gradient(135deg, #d98cff, #7a017a);
+    background: var(--accent-strong);
     color: #fff;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
   }
 
   .nav-arrow {
@@ -270,7 +271,7 @@
     margin-top: auto;
   }
 
-  .profile-chip {
+  .local-status {
     display: flex;
     align-items: center;
     gap: 0.7rem;
@@ -280,37 +281,56 @@
     background: var(--surface-muted);
   }
 
-  .avatar {
-    display: grid;
-    place-items: center;
-    width: 2.1rem;
-    height: 2.1rem;
+  .local-dot {
+    position: relative;
+    display: block;
+    flex: 0 0 auto;
+    width: 0.55rem;
+    height: 0.55rem;
     border-radius: 50%;
-    background: var(--surface-raised);
-    color: var(--pink-color);
-    font-size: 0.82rem;
-    font-weight: 800;
+    background: var(--accent-color);
   }
 
-  .profile-copy {
+  .local-dot::after {
+    position: absolute;
+    inset: -0.28rem;
+    border-radius: 50%;
+    content: '';
+    background: var(--accent-soft);
+    animation: breathe 3.8s ease-in-out infinite;
+  }
+
+  .local-copy {
     display: flex;
     flex-direction: column;
     line-height: 1.2;
   }
 
-  .profile-copy strong {
-    font-size: 0.82rem;
+  .local-copy strong {
+    font-size: 0.8rem;
   }
 
-  .profile-copy span {
+  .local-copy span {
     color: var(--muted-text-color);
-    font-size: 0.72rem;
+    font-size: 0.7rem;
   }
 
-  .sidebar-note {
-    padding: 0 0.7rem;
+  .local-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.35rem 0.55rem;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    background: var(--surface-muted);
     color: var(--muted-text-color);
-    font-size: 0.72rem;
+    font-size: 0.66rem;
+    font-weight: 600;
+  }
+
+  .local-chip .local-dot {
+    width: 0.42rem;
+    height: 0.42rem;
   }
 
   .app-main {
@@ -348,6 +368,7 @@
       padding: 0.75rem 1rem;
       border-bottom: 1px solid var(--border-color);
       background: rgba(42, 36, 49, 0.85);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
       backdrop-filter: blur(18px);
     }
 
@@ -360,13 +381,6 @@
       height: 2.1rem;
       border-radius: 0.65rem;
       font-size: 0.85rem;
-    }
-
-    .mobile-bar .avatar {
-      width: 2.25rem;
-      height: 2.25rem;
-      border: 1px solid var(--border-color);
-      background: var(--surface-muted);
     }
 
     .app-main {
@@ -383,6 +397,7 @@
       padding: 0.5rem 0.55rem calc(0.5rem + env(safe-area-inset-bottom));
       border-top: 1px solid var(--border-color);
       background: rgba(42, 36, 49, 0.94);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
       backdrop-filter: blur(20px);
     }
 

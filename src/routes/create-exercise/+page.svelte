@@ -132,57 +132,55 @@
       placeholder="e.g. Incline dumbbell press"
       bind:bind={exerciseName}
     />
+    <p class="field-help">Use the name you will recognise mid-session.</p>
   </div>
 
   <div class="form-section">
     <div class="section-head">
       <div>
-        <h2>Exercise type</h2>
-        <p>Choose how this movement is tracked.</p>
+        <h2>Tracking mode</h2>
+        <p>Pick how this movement is logged.</p>
       </div>
     </div>
 
-    <div class="option-grid">
+    <div class="option-rail" role="group" aria-label="Tracking options">
       <button
         type="button"
-        class={['option-card', { active: weightProperties.weighted }]}
+        class={['option', { active: weightProperties.weighted }]}
         onclick={toggleWeighted}
         aria-pressed={weightProperties.weighted}
       >
         <span class="option-icon"><i class="fa-solid fa-dumbbell" aria-hidden="true"></i></span>
         <span class="option-copy">
           <strong>Weighted</strong>
-          <span>Track load per set</span>
+          <span>Load per set</span>
         </span>
-        <span class="option-check"><i class="fa-solid fa-check" aria-hidden="true"></i></span>
       </button>
 
       <button
         type="button"
-        class={['option-card', { active: isTimed }]}
+        class={['option', { active: isTimed }]}
         onclick={toggleTimed}
         aria-pressed={isTimed}
       >
         <span class="option-icon"><i class="fa-solid fa-stopwatch" aria-hidden="true"></i></span>
         <span class="option-copy">
           <strong>Timed</strong>
-          <span>Log duration per set</span>
+          <span>Duration per set</span>
         </span>
-        <span class="option-check"><i class="fa-solid fa-check" aria-hidden="true"></i></span>
       </button>
 
       <button
         type="button"
-        class={['option-card', { active: otherEquipment.exists }]}
+        class={['option', { active: otherEquipment.exists }]}
         onclick={toggleOtherEquipment}
         aria-pressed={otherEquipment.exists}
       >
         <span class="option-icon"><i class="fa-solid fa-toolbox" aria-hidden="true"></i></span>
         <span class="option-copy">
           <strong>Equipment</strong>
-          <span>Needs another tool</span>
+          <span>Uses another tool</span>
         </span>
-        <span class="option-check"><i class="fa-solid fa-check" aria-hidden="true"></i></span>
       </button>
     </div>
 
@@ -274,59 +272,77 @@
     border-top: 1px solid var(--border-color);
   }
 
-  .option-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.75rem;
-    margin-top: 1.1rem;
+  .field-help {
+    margin-top: 0.45rem;
+    color: var(--muted-text-color);
+    font-size: 0.75rem;
   }
 
-  .option-card {
-    position: relative;
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    min-height: 6rem;
-    padding: 1rem;
+  .option-rail {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 1.1rem;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     background: var(--surface-muted);
+    overflow: hidden;
+  }
+
+  .option {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    padding: 1rem;
+    border: 0;
+    border-right: 1px solid var(--border-color);
+    background: transparent;
     color: var(--main-text-color);
     text-align: left;
     transition:
-      border-color 160ms var(--ease-out),
       background-color 160ms var(--ease-out),
       transform 160ms var(--ease-out);
   }
 
-  .option-card:hover {
-    border-color: var(--border-strong);
-    background: var(--surface-raised);
+  .option:last-child {
+    border-right: 0;
   }
 
-  .option-card:active {
+  .option:hover {
+    background: rgba(255, 200, 255, 0.035);
+  }
+
+  .option:active {
     transform: translateY(1px);
   }
 
-  .option-card.active {
-    border-color: rgba(194, 107, 255, 0.5);
+  .option.active {
     background: var(--accent-soft);
+  }
+
+  .option.active::after {
+    position: absolute;
+    inset: auto 0 0;
+    height: 2px;
+    content: '';
+    background: var(--accent-color);
   }
 
   .option-icon {
     display: grid;
     place-items: center;
     flex: 0 0 auto;
-    width: 2.4rem;
-    height: 2.4rem;
-    border-radius: 0.7rem;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 0.6rem;
     background: rgba(255, 200, 255, 0.06);
     color: var(--muted-text-color);
   }
 
-  .option-card.active .option-icon {
-    background: linear-gradient(135deg, #d98cff, #7a017a);
+  .option.active .option-icon {
+    background: var(--accent-strong);
     color: #fff;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
   }
 
   .option-copy {
@@ -337,37 +353,13 @@
   }
 
   .option-copy strong {
-    font-size: 0.9rem;
+    font-size: 0.86rem;
   }
 
   .option-copy span {
     color: var(--muted-text-color);
-    font-size: 0.76rem;
+    font-size: 0.72rem;
     line-height: 1.35;
-  }
-
-  .option-check {
-    position: absolute;
-    top: 0.65rem;
-    right: 0.65rem;
-    display: grid;
-    place-items: center;
-    width: 1.15rem;
-    height: 1.15rem;
-    border-radius: 50%;
-    background: var(--accent-strong);
-    color: #fff;
-    font-size: 0.55rem;
-    opacity: 0;
-    transform: scale(0.7);
-    transition:
-      opacity 160ms var(--ease-out),
-      transform 160ms var(--ease-out);
-  }
-
-  .option-card.active .option-check {
-    opacity: 1;
-    transform: scale(1);
   }
 
   .config-panel {
@@ -463,12 +455,17 @@
   }
 
   @media (max-width: 820px) {
-    .option-grid {
+    .option-rail {
       grid-template-columns: 1fr;
     }
 
-    .option-card {
-      min-height: auto;
+    .option {
+      border-right: 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .option:last-child {
+      border-bottom: 0;
     }
 
     .config-panel {

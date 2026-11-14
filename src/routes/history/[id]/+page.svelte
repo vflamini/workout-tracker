@@ -60,19 +60,19 @@
   </div>
 </header>
 
-<section class="stat-grid" aria-label="Workout totals">
-  {#each stats as stat (stat.label)}
-    <article class="stat-card card">
-      <span class="stat-icon"><i class="fa-solid {stat.icon}" aria-hidden="true"></i></span>
-      <span class="stat-label">{stat.label}</span>
-      <strong>{stat.value}</strong>
+<section class="metric-strip" aria-label="Workout totals">
+  {#each stats as stat, i (stat.label)}
+    <article class="metric" style={`--index: ${i}`}>
+      <span class="metric-icon"><i class="fa-solid {stat.icon}" aria-hidden="true"></i></span>
+      <span class="metric-label">{stat.label}</span>
+      <strong class="metric-value">{stat.value}</strong>
     </article>
   {/each}
 </section>
 
 <section class="exercise-list" aria-label="Exercises in this workout">
-  {#each workout.exercises as exercise (exercise.id)}
-    <article class="card exercise-card">
+  {#each workout.exercises as exercise, i (exercise.id)}
+    <article class="card exercise-card reveal" style={`--index: ${i}`}>
       <header class="exercise-head">
         <div>
           <h2>{exercise.exerciseName}</h2>
@@ -147,43 +147,8 @@
     color: var(--accent-color);
   }
 
-  .stat-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.85rem;
+  .metric-strip {
     margin-bottom: 1.5rem;
-  }
-
-  .stat-card {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-    padding: 1rem;
-  }
-
-  .stat-icon {
-    display: grid;
-    place-items: center;
-    width: 2.2rem;
-    height: 2.2rem;
-    margin-bottom: 0.35rem;
-    border-radius: 0.65rem;
-    background: var(--accent-soft);
-    color: var(--accent-color);
-    font-size: 0.85rem;
-  }
-
-  .stat-label {
-    color: var(--muted-text-color);
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-
-  .stat-card strong {
-    font-size: 1.7rem;
-    line-height: 1.15;
   }
 
   .exercise-list {
@@ -274,25 +239,5 @@
     margin-top: 0.9rem;
     color: var(--muted-text-color);
     font-size: 0.82rem;
-  }
-
-  @media (max-width: 640px) {
-    .stat-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .stat-card {
-      flex-direction: row;
-      align-items: center;
-      gap: 0.7rem;
-    }
-
-    .stat-icon {
-      margin-bottom: 0;
-    }
-
-    .stat-card strong {
-      margin-left: auto;
-    }
   }
 </style>

@@ -25,8 +25,12 @@
 
 {#if data.workouts.length}
   <div class="history-list">
-    {#each data.workouts as workout (workout.id)}
-      <a class="history-card card" href={resolve('/history/[id]', { id: String(workout.id) })}>
+    {#each data.workouts as workout, i (workout.id)}
+      <a
+        class="history-card card reveal"
+        style={`--index: ${i}`}
+        href={resolve('/history/[id]', { id: String(workout.id) })}
+      >
         <div class="history-date">
           <span>{formatDate(workout.date)}</span>
           {#if workout.duration}
@@ -85,7 +89,7 @@
   }
 
   .history-card:hover {
-    border-color: rgba(194, 107, 255, 0.42);
+    border-color: rgba(154, 75, 176, 0.45);
     background: var(--surface-raised);
     transform: translateY(-1px);
   }
