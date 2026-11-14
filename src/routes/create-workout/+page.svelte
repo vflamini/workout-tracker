@@ -17,6 +17,7 @@
     currentExercises.reduce((total, exercise) => total + loggedSets(exercise).length, 0)
   );
   let exercisesModal = $state(false);
+  let elapsedSeconds = $state(0);
   let saving = $state(false);
   let errorMessage = $state('');
 
@@ -34,12 +35,23 @@
   };
 
   function addExercise(exercise: WorkoutExercise) {
-    actions.addExercise({ ...exercise, sets: [] });
+    actions.addExercise({
+      ...exercise,
+      sets: [{ ...blankSet }]
+    });
+    errorMessage = '';
     hideExercises();
   }
 
+  function removeExercise(exercise: WorkoutExercise) {
+    actions.removeExercise(exercise);
+  }
+
   function addSet(exercise: WorkoutExercise) {
-    exercise.sets = [...(exercise.sets ?? []), { ...blankSet }];
+    const existing = exercise.sets ?? [];
+    const lastSet = existing.length ? existing[existing.length - 1] : null;
+    const nextSet = lastSet ? { ...lastSet } : { ...blankSet };
+    exercise.sets = [...existing, nextSet];
   }
 
   function removeSet(exercise: WorkoutExercise, setNum: number) {
@@ -76,7 +88,7 @@
     const name = workout.current.name.trim();
 
     if (!name) {
-      errorMessage = 'Give this workout a name before finishing.';
+      errorMessage = 'Name this workout before finishing.';
       return;
     }
 
@@ -88,7 +100,7 @@
       .filter((exercise) => Number.isInteger(exercise.exerciseId) && exercise.sets.length > 0);
 
     if (!payloadExercises.length) {
-      errorMessage = 'Log at least one set before finishing this workout.';
+      errorMessage = 'Log at least one set before finishing.';
       return;
     }
 
@@ -102,6 +114,7 @@
           name,
           variant: workout.current.variation,
           date: workoutDate,
+          time: elapsedSeconds > 0 ? elapsedSeconds : null,
           exercises: payloadExercises
         })
       });
@@ -112,6 +125,7 @@
       }
 
       actions.reset();
+      elapsedSeconds = 0;
       await goto(resolve('/history/[id]', { id: String(result.id) }));
     } catch (error) {
       errorMessage = error instanceof Error ? error.message : 'Could not save workout';
@@ -122,21 +136,21 @@
 </script>
 
 <svelte:head>
-  <title>Create Workout · Workout Tracker</title>
+  <title>Workout · Workout Log</title>
 </svelte:head>
 
 <header class="page-header">
   <div>
-    <p class="eyebrow">Train</p>
-    <h1 class="page-title">Create workout</h1>
-    <p class="page-subtitle">Build your session, add exercises, and log each set as you go.</p>
+    <h1 class="page-title">Workout</h1>
+    <p class="page-subtitle">Name the session, add movements, and log sets as you go.</p>
   </div>
-  <div class="page-actions">
-    <a class="btn btn-ghost" href={resolve('')}>
-      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-      Back to dashboard
-    </a>
-  </div>
+  {#if currentExercises.length}
+    <div class="page-actions">
+      <button type="button" class="btn btn-ghost" onclick={() => actions.reset()}>
+        Clear draft
+      </button>
+    </div>
+  {/if}
 </header>
 
 <div class="workout-layout">
@@ -144,7 +158,6 @@
     <div class="section-head">
       <div>
         <h2 id="session-details">Session details</h2>
-        <p>Name the workout and set the date for this session.</p>
       </div>
     </div>
 
@@ -163,8 +176,8 @@
       />
       <DateInput id="workout-date" label="Date" bind:bind={workoutDate} />
       <div class="timer-field">
-        <span class="field-label">Elapsed</span>
-        <Timer />
+        <span class="field-label">Duration</span>
+        <Timer bind:seconds={elapsedSeconds} />
       </div>
     </div>
   </section>
@@ -172,26 +185,29 @@
   <section class="exercise-section" aria-labelledby="exercise-heading">
     <div class="section-head">
       <div>
-        <h2 id="exercise-heading">Exercises</h2>
-        <p>{currentExercises.length} exercise{currentExercises.length === 1 ? '' : 's'} added</p>
+        <h2 id="exercise-heading">
+          Exercises{#if currentExercises.length}
+            <span class="count-muted">({currentExercises.length})</span>{/if}
+        </h2>
       </div>
-      <button type="button" class="btn btn-ghost" onclick={showExercises}>
-        <i class="fa-solid fa-plus" aria-hidden="true"></i>
-        Add exercise
-      </button>
     </div>
 
     {#if currentExercises.length}
       <div class="exercise-list">
-        {#each currentExercises as exercise, i (`${exercise.exerciseName}-${i}`)}
-          <Exercise {exercise} {removeSet} {addSet} />
+        {#each currentExercises as exercise, i (`${exercise.id ?? exercise.exerciseName}-${i}`)}
+          <Exercise {exercise} index={i} {removeSet} {addSet} {removeExercise} />
         {/each}
       </div>
+
+      <button type="button" class="btn btn-ghost add-more-btn" onclick={showExercises}>
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        Add exercise
+      </button>
     {:else}
       <div class="empty-state">
         <span class="empty-icon"><i class="fa-solid fa-dumbbell" aria-hidden="true"></i></span>
-        <h3>No exercises yet</h3>
-        <p>Add your first movement to start building this session.</p>
+        <h3>No exercises queued</h3>
+        <p>Pick a movement from your library to start logging sets.</p>
         <button type="button" class="btn btn-primary" onclick={showExercises}>
           <i class="fa-solid fa-plus" aria-hidden="true"></i>
           Add exercise
@@ -205,10 +221,10 @@
   <div class="finish-bar">
     <div class="finish-copy">
       <span class="muted">Unsaved session</span>
-      <strong
-        >{currentExercises.length} exercise{currentExercises.length === 1 ? '' : 's'} · {totalLoggedSets}
-        set{totalLoggedSets === 1 ? '' : 's'} logged</strong
-      >
+      <strong>
+        {currentExercises.length} exercise{currentExercises.length === 1 ? '' : 's'} · {totalLoggedSets}
+        set{totalLoggedSets === 1 ? '' : 's'} logged
+      </strong>
       {#if errorMessage}
         <span class="form-error" role="alert">{errorMessage}</span>
       {/if}
@@ -232,34 +248,44 @@
 <style>
   .workout-layout {
     display: grid;
-    gap: 2rem;
+    gap: 1.75rem;
   }
 
   .details-card {
-    padding: clamp(1rem, 2.5vw, 1.5rem);
+    padding: clamp(1rem, 2.5vw, 1.35rem);
   }
 
   .details-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1rem;
-    margin-top: 1.25rem;
+    gap: 0.9rem;
+    margin-top: 1rem;
   }
 
   .timer-field {
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
+    gap: 0.38rem;
   }
 
   .exercise-section {
     display: grid;
-    gap: 1rem;
+    gap: 0.9rem;
+  }
+
+  .count-muted {
+    color: var(--muted-text-color);
+    font-weight: 500;
   }
 
   .exercise-list {
     display: grid;
     gap: 0.75rem;
+  }
+
+  .add-more-btn {
+    width: 100%;
+    border-style: dashed;
   }
 
   .finish-bar {
@@ -268,9 +294,9 @@
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    margin-top: 2rem;
-    padding: 1rem;
-    border: 1px solid var(--border-color);
+    margin-top: 1.75rem;
+    padding: 1rem 1.15rem;
+    border: 1px solid var(--border-strong);
     border-radius: var(--radius-md);
     background: var(--surface-color);
   }
@@ -282,14 +308,15 @@
   }
 
   .finish-copy .muted {
-    font-size: 0.76rem;
+    font-size: 0.74rem;
   }
 
   .finish-copy strong {
-    font-size: 0.95rem;
+    font-size: 0.92rem;
   }
 
   .form-error {
+    margin-top: 0.25rem;
     color: var(--negative-output-color);
     font-size: 0.8rem;
     font-weight: 600;

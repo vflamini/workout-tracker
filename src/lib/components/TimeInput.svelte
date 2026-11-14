@@ -1,5 +1,12 @@
 <script lang="ts">
-  let { id, label, bind = $bindable(''), classes = [], placeholder = '00:00' } = $props();
+  let {
+    id,
+    label = '',
+    ariaLabel = '',
+    bind = $bindable(''),
+    classes = [],
+    placeholder = '00:00'
+  } = $props();
 
   const sizes = $derived(
     Array.isArray(classes) ? classes : String(classes).split(/\s+/).filter(Boolean)
@@ -23,7 +30,7 @@
   class={[
     'field',
     {
-      compact: sizes.includes('skinny') || sizes.includes('short'),
+      compact: sizes.includes('compact') || sizes.includes('skinny') || sizes.includes('short'),
       small: sizes.includes('small')
     }
   ]}
@@ -38,6 +45,7 @@
     type="text"
     inputmode="numeric"
     maxlength="5"
+    aria-label={!label && ariaLabel ? ariaLabel : undefined}
     value={bind}
     oninput={handleInput}
   />

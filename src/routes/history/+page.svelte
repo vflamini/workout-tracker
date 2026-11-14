@@ -6,13 +6,12 @@
 </script>
 
 <svelte:head>
-  <title>History · Workout Tracker</title>
+  <title>History · Workout Log</title>
 </svelte:head>
 
 <header class="page-header">
   <div>
-    <p class="eyebrow">Training log</p>
-    <h1 class="page-title">Workout history</h1>
+    <h1 class="page-title">History</h1>
     <p class="page-subtitle">Every session you have logged, newest first.</p>
   </div>
   <div class="page-actions">
@@ -27,7 +26,7 @@
   <div class="history-list">
     {#each data.workouts as workout, i (workout.id)}
       <a
-        class="history-card card reveal"
+        class="history-row reveal"
         style={`--index: ${i}`}
         href={resolve('/history/[id]', { id: String(workout.id) })}
       >
@@ -45,11 +44,9 @@
 
         <div class="history-metrics">
           <span class="badge">
-            <i class="fa-solid fa-dumbbell" aria-hidden="true"></i>
             {workout.exerciseCount} exercise{workout.exerciseCount === 1 ? '' : 's'}
           </span>
           <span class="badge">
-            <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
             {workout.setCount} set{workout.setCount === 1 ? '' : 's'}
           </span>
         </div>
@@ -65,33 +62,35 @@
     <p>Finish your first session and it will appear here with every exercise and set.</p>
     <a class="btn btn-primary" href={resolve('create-workout')}>
       <i class="fa-solid fa-plus" aria-hidden="true"></i>
-      Create workout
+      New workout
     </a>
   </div>
 {/if}
 
 <style>
   .history-list {
-    display: grid;
-    gap: 0.75rem;
+    border-top: 1px solid var(--border-color);
   }
 
-  .history-card {
+  .history-row {
     display: grid;
-    grid-template-columns: minmax(7rem, auto) minmax(0, 1fr) auto auto;
+    grid-template-columns: minmax(8.5rem, auto) minmax(0, 1fr) auto auto;
     align-items: center;
     gap: 1rem;
-    padding: 1rem 1.1rem;
+    padding: 1rem 0.65rem;
+    border-bottom: 1px solid var(--border-color);
     transition:
-      border-color 160ms var(--ease-out),
-      background-color 160ms var(--ease-out),
-      transform 160ms var(--ease-out);
+      background-color 140ms var(--ease-out),
+      transform 120ms var(--ease-out);
   }
 
-  .history-card:hover {
-    border-color: rgba(154, 75, 176, 0.45);
-    background: var(--surface-raised);
-    transform: translateY(-1px);
+  .history-row:hover {
+    background: rgba(255, 200, 255, 0.045);
+  }
+
+  .history-row:active {
+    transform: scale(0.99);
+    transition: transform 80ms ease-out;
   }
 
   .history-date {
@@ -100,6 +99,7 @@
     gap: 0.1rem;
     font-size: 0.8rem;
     font-weight: 700;
+    font-variant-numeric: tabular-nums;
   }
 
   .history-date .muted {
@@ -112,13 +112,14 @@
   }
 
   .history-copy h2 {
-    font-size: 1rem;
+    font-size: 0.98rem;
     font-weight: 700;
   }
 
   .history-copy p {
+    margin-top: 0.15rem;
     color: var(--muted-text-color);
-    font-size: 0.8rem;
+    font-size: 0.78rem;
   }
 
   .history-metrics {
@@ -133,15 +134,16 @@
   }
 
   @media (max-width: 760px) {
-    .history-card {
+    .history-row {
       grid-template-columns: minmax(0, 1fr) auto;
-      gap: 0.6rem 1rem;
+      gap: 0.55rem 1rem;
+      padding-inline: 0.25rem;
     }
 
     .history-date {
       grid-column: 1 / -1;
       flex-direction: row;
-      gap: 0.5rem;
+      gap: 0.6rem;
     }
 
     .history-metrics {

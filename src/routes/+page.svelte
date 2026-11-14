@@ -1,343 +1,336 @@
 <script lang="ts">
   import { resolve } from '$app/paths';
+  import { getCurrentWorkout } from '#lib/contexts/CurrentWorkout.svelte.ts';
+  import { formatDate } from '#lib/utils/format.ts';
 
   let { data } = $props();
 
-  const stats = $derived([
-    {
-      label: 'Workouts',
-      value: data.totals.workouts,
-      meta: 'logged all time',
-      icon: 'fa-dumbbell'
-    },
-    {
-      label: 'Exercises',
-      value: data.totals.exercises,
-      meta: 'in your library',
-      icon: 'fa-list-check'
-    },
-    {
-      label: 'Sets',
-      value: data.totals.sets,
-      meta: 'tracked total',
-      icon: 'fa-layer-group'
-    }
-  ]);
+  const { workout } = getCurrentWorkout();
 
-  function formatDate(value: string | null) {
-    if (!value) return 'No date';
-    return new Intl.DateTimeFormat(undefined, {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    }).format(new Date(value));
-  }
+  const hasDraft = $derived(workout.exercises.length > 0 || workout.current.name.trim().length > 0);
+
+  const ledgerRows = $derived([
+    { label: 'Workouts logged', value: data.totals.workouts },
+    { label: 'Exercises in library', value: data.totals.exercises },
+    { label: 'Sets tracked', value: data.totals.sets }
+  ]);
 </script>
 
 <svelte:head>
-  <title>Dashboard · Workout Tracker</title>
+  <title>Today · Workout Log</title>
 </svelte:head>
 
 <header class="page-header">
   <div>
-    <p class="eyebrow">Overview</p>
-    <h1 class="page-title">Training desk</h1>
-    <p class="page-subtitle">Start a session, add to the library, or check the log.</p>
+    <h1 class="page-title">Today</h1>
+    <p class="page-subtitle">Start a session, pick up where you left off, or check recent logs.</p>
   </div>
   <div class="page-actions">
     <a class="btn btn-primary" href={resolve('create-workout')}>
-      <i class="fa-solid fa-plus" aria-hidden="true"></i>
-      New workout
+      <i class="fa-solid {hasDraft ? 'fa-play' : 'fa-plus'}" aria-hidden="true"></i>
+      {hasDraft ? 'Resume workout' : 'New workout'}
     </a>
   </div>
 </header>
 
-<section class="metric-strip" aria-label="Training totals">
-  {#each stats as stat, i (stat.label)}
-    <article class="metric" style={`--index: ${i}`}>
-      <span class="metric-icon"><i class="fa-solid {stat.icon}" aria-hidden="true"></i></span>
-      <span class="metric-label">{stat.label}</span>
-      <strong class="metric-value">{stat.value}</strong>
-      <span class="metric-meta">{stat.meta}</span>
-    </article>
-  {/each}
-</section>
+{#if hasDraft}
+  <a class="draft-banner reveal" href={resolve('create-workout')}>
+    <div class="draft-copy">
+      <span class="draft-tag">Session in progress</span>
+      <strong>{workout.current.name.trim() || 'Untitled workout'}</strong>
+      <span class="muted">
+        {workout.exercises.length} exercise{workout.exercises.length === 1 ? '' : 's'} queued
+      </span>
+    </div>
+    <span class="btn btn-sm">Open</span>
+  </a>
+{/if}
 
-<div class="dashboard-grid">
-  <section class="card recent-card" aria-labelledby="recent-heading">
+<div class="today-grid">
+  <section aria-labelledby="recent-heading">
     <div class="section-head">
       <div>
         <h2 id="recent-heading">Recent workouts</h2>
         <p>Your latest logged sessions.</p>
       </div>
-      <a class="btn btn-ghost btn-sm" href={resolve('my-stats')}>View stats</a>
+      {#if data.recent.length}
+        <a class="btn btn-ghost btn-sm" href={resolve('history')}>All history</a>
+      {/if}
     </div>
 
     {#if data.recent.length}
-      <ul class="activity-list">
-        {#each data.recent as workout, i (workout.id)}
+      <ul class="log-list">
+        {#each data.recent as item, i (item.id)}
           <li>
             <a
-              class="activity-item reveal"
+              class="log-row reveal"
               style={`--index: ${i}`}
-              href={resolve('/history/[id]', { id: String(workout.id) })}
+              href={resolve('/history/[id]', { id: String(item.id) })}
             >
-              <span class="activity-icon"><i class="fa-solid fa-bolt" aria-hidden="true"></i></span>
-              <span class="activity-copy">
-                <strong>{workout.name}</strong>
-                <span>{workout.variant || 'Standard session'}</span>
+              <span class="log-copy">
+                <strong>{item.name}</strong>
+                <span>{item.variant || 'Standard session'}</span>
               </span>
-              <time class="activity-date">{formatDate(workout.date)}</time>
+              <time class="log-date">{formatDate(item.date)}</time>
+              <i class="fa-solid fa-chevron-right log-arrow" aria-hidden="true"></i>
             </a>
           </li>
         {/each}
       </ul>
     {:else}
-      <div class="empty-state compact-empty">
+      <div class="empty-state recent-empty">
         <span class="empty-icon"><i class="fa-solid fa-dumbbell" aria-hidden="true"></i></span>
-        <h3>No workouts logged</h3>
-        <p>Create your first workout and it will show up here.</p>
+        <h3>No workouts logged yet</h3>
+        <p>Start a session to record sets and build your log.</p>
         <a class="btn btn-primary" href={resolve('create-workout')}>
           <i class="fa-solid fa-plus" aria-hidden="true"></i>
-          Create workout
+          New workout
         </a>
       </div>
     {/if}
   </section>
 
-  <div class="side-stack">
-    <section class="card action-card" aria-labelledby="quick-heading">
-      <div class="section-head">
-        <div>
-          <h2 id="quick-heading">Next move</h2>
-          <p>Pick up where you left off.</p>
-        </div>
-      </div>
+  <aside class="side-rail">
+    <section class="ledger" aria-labelledby="totals-heading">
+      <h2 id="totals-heading" class="rail-heading">Totals</h2>
+      <dl class="ledger-list">
+        {#each ledgerRows as row, i (row.label)}
+          <div class="ledger-row reveal" style={`--index: ${i}`}>
+            <dt>{row.label}</dt>
+            <dd>{row.value}</dd>
+          </div>
+        {/each}
+      </dl>
+    </section>
 
-      <div class="action-list">
-        <a class="action-link reveal" style="--index: 0" href={resolve('create-workout')}>
-          <span class="action-icon"><i class="fa-solid fa-play" aria-hidden="true"></i></span>
+    <section class="jump-section" aria-labelledby="jump-heading">
+      <h2 id="jump-heading" class="rail-heading">Library & analysis</h2>
+      <div class="jump-list">
+        <a class="jump-link" href={resolve('create-exercise')}>
           <span>
-            <strong>Start a workout</strong>
-            <span>Open a blank session</span>
+            <strong>Exercises</strong>
+            <span>Add or browse movements ({data.totals.exercises})</span>
           </span>
-          <i class="fa-solid fa-arrow-right action-arrow" aria-hidden="true"></i>
+          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
         </a>
-        <a class="action-link reveal" style="--index: 1" href={resolve('create-exercise')}>
-          <span class="action-icon"><i class="fa-solid fa-plus" aria-hidden="true"></i></span>
+        <a class="jump-link" href={resolve('my-stats')}>
           <span>
-            <strong>Add an exercise</strong>
-            <span>Add a movement</span>
-          </span>
-          <i class="fa-solid fa-arrow-right action-arrow" aria-hidden="true"></i>
-        </a>
-        <a class="action-link reveal" style="--index: 2" href={resolve('my-stats')}>
-          <span class="action-icon"><i class="fa-solid fa-chart-line" aria-hidden="true"></i></span>
-          <span>
-            <strong>Open stats</strong>
+            <strong>Stats</strong>
             <span>Weekly volume and top lifts</span>
           </span>
-          <i class="fa-solid fa-arrow-right action-arrow" aria-hidden="true"></i>
+          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
         </a>
       </div>
     </section>
-
-    <section class="card flow-card" aria-labelledby="flow-heading">
-      <span class="eyebrow">Session flow</span>
-      <h2 id="flow-heading">From blank page to saved log</h2>
-      <ol class="flow-list">
-        <li><span>01</span> Name the workout</li>
-        <li><span>02</span> Add exercises and sets</li>
-        <li><span>03</span> Finish to save it to history</li>
-      </ol>
-    </section>
-  </div>
+  </aside>
 </div>
 
 <style>
-  .metric-strip {
+  .draft-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
     margin-bottom: 1.5rem;
+    padding: 0.9rem 1.1rem;
+    border: 1px solid rgba(154, 75, 176, 0.55);
+    border-radius: var(--radius-md);
+    background: var(--accent-soft);
+    transition:
+      border-color 140ms var(--ease-out),
+      transform 120ms var(--ease-out);
   }
 
-  .dashboard-grid {
+  .draft-banner:hover {
+    border-color: var(--accent-color);
+  }
+
+  .draft-banner:active {
+    transform: scale(0.99);
+  }
+
+  .draft-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+  }
+
+  .draft-tag {
+    color: var(--pink-color);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .draft-copy strong {
+    font-size: 0.98rem;
+  }
+
+  .draft-copy .muted {
+    font-size: 0.78rem;
+  }
+
+  .today-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
-    gap: 1rem;
+    grid-template-columns: minmax(0, 1.6fr) minmax(16rem, 1fr);
+    gap: 2rem;
     align-items: start;
   }
 
-  .recent-card,
-  .action-card {
-    padding: 1.25rem;
-  }
-
-  .activity-list {
-    display: grid;
-    gap: 0.5rem;
+  .log-list {
     margin-top: 1rem;
+    border-top: 1px solid var(--border-color);
   }
 
-  .activity-item {
+  .log-row {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.7rem;
-    border: 1px solid transparent;
-    border-radius: var(--radius-sm);
-    background: var(--surface-muted);
+    gap: 0.85rem;
+    padding: 0.9rem 0.65rem;
+    border-bottom: 1px solid var(--border-color);
     transition:
-      border-color 160ms var(--ease-out),
-      background-color 160ms var(--ease-out),
-      transform 160ms var(--ease-out);
+      background-color 140ms var(--ease-out),
+      transform 120ms var(--ease-out);
   }
 
-  .activity-item:hover {
-    border-color: rgba(154, 75, 176, 0.45);
-    background: var(--surface-raised);
-    transform: translateY(-1px);
+  .log-row:hover {
+    background: rgba(255, 200, 255, 0.045);
   }
 
-  .activity-icon {
-    display: grid;
-    place-items: center;
-    width: 2.1rem;
-    height: 2.1rem;
-    border-radius: 0.6rem;
-    background: rgba(255, 200, 255, 0.06);
-    color: var(--accent-color);
-    font-size: 0.75rem;
+  .log-row:active {
+    transform: scale(0.99);
+    transition: transform 80ms ease-out;
   }
 
-  .activity-copy {
+  .log-copy {
     display: flex;
     flex: 1;
     flex-direction: column;
     min-width: 0;
-    line-height: 1.3;
+    line-height: 1.35;
   }
 
-  .activity-copy strong {
-    font-size: 0.88rem;
+  .log-copy strong {
+    font-size: 0.94rem;
   }
 
-  .activity-copy span {
-    color: var(--muted-text-color);
-    font-size: 0.76rem;
-  }
-
-  .activity-date {
-    color: var(--muted-text-color);
-    font-size: 0.72rem;
-    white-space: nowrap;
-  }
-
-  .side-stack {
-    display: grid;
-    gap: 1rem;
-    align-content: start;
-  }
-
-  .action-list {
-    display: grid;
-    gap: 0.5rem;
-    margin-top: 1rem;
-  }
-
-  .action-link {
-    display: flex;
-    align-items: center;
-    gap: 0.7rem;
-    padding: 0.7rem;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    background: var(--surface-muted);
-    transition:
-      border-color 160ms var(--ease-out),
-      background-color 160ms var(--ease-out),
-      transform 160ms var(--ease-out);
-  }
-
-  .action-link:hover {
-    border-color: rgba(154, 75, 176, 0.48);
-    background: var(--surface-raised);
-    transform: translateY(-1px);
-  }
-
-  .action-icon {
-    display: grid;
-    place-items: center;
-    width: 2.1rem;
-    height: 2.1rem;
-    border-radius: 0.6rem;
-    background: var(--accent-soft);
-    color: var(--accent-color);
-    font-size: 0.75rem;
-  }
-
-  .action-link > span:not(.action-icon) {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    line-height: 1.3;
-  }
-
-  .action-link strong {
-    font-size: 0.85rem;
-  }
-
-  .action-link span span {
-    color: var(--muted-text-color);
-    font-size: 0.74rem;
-  }
-
-  .action-arrow {
-    color: var(--muted-text-color);
-    font-size: 0.7rem;
-  }
-
-  .flow-card {
-    padding: 1.1rem;
-  }
-
-  .flow-card h2 {
-    margin-top: 0.25rem;
-    font-size: 0.98rem;
-  }
-
-  .flow-list {
-    display: grid;
-    gap: 0.55rem;
-    margin-top: 0.9rem;
-  }
-
-  .flow-list li {
-    display: flex;
-    align-items: baseline;
-    gap: 0.65rem;
+  .log-copy span {
     color: var(--muted-text-color);
     font-size: 0.78rem;
   }
 
-  .flow-list span {
-    color: var(--warning-output-color);
-    font-size: 0.68rem;
-    font-weight: 700;
+  .log-date {
+    color: var(--muted-text-color);
+    font-size: 0.76rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
   }
 
-  .compact-empty {
+  .log-arrow {
+    color: var(--muted-text-color);
+    font-size: 0.7rem;
+  }
+
+  .recent-empty {
     margin-top: 1rem;
-    padding: 2rem 1rem;
   }
 
-  @media (max-width: 980px) {
-    .dashboard-grid {
+  .side-rail {
+    display: grid;
+    gap: 1.75rem;
+  }
+
+  .rail-heading {
+    color: var(--muted-text-color);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  .ledger-list {
+    margin: 0.65rem 0 0;
+    border-top: 1px solid var(--border-color);
+  }
+
+  .ledger-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .ledger-row dt {
+    color: var(--muted-text-color);
+    font-size: 0.84rem;
+  }
+
+  .ledger-row dd {
+    margin: 0;
+    color: var(--main-text-color);
+    font-size: 1.15rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .jump-list {
+    display: grid;
+    gap: 0.55rem;
+    margin-top: 0.7rem;
+  }
+
+  .jump-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.8rem 0.9rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--surface-color);
+    transition:
+      border-color 140ms var(--ease-out),
+      background-color 140ms var(--ease-out),
+      transform 120ms var(--ease-out);
+  }
+
+  .jump-link:hover {
+    border-color: var(--border-highlight-color);
+    background: var(--surface-raised);
+  }
+
+  .jump-link:active {
+    transform: scale(0.98);
+    transition: transform 80ms ease-out;
+  }
+
+  .jump-link span {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.3;
+  }
+
+  .jump-link strong {
+    font-size: 0.88rem;
+  }
+
+  .jump-link span span {
+    color: var(--muted-text-color);
+    font-size: 0.75rem;
+  }
+
+  .jump-link i {
+    color: var(--muted-text-color);
+    font-size: 0.75rem;
+  }
+
+  @media (max-width: 900px) {
+    .today-grid {
       grid-template-columns: 1fr;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .activity-date {
-      display: none;
     }
   }
 </style>
