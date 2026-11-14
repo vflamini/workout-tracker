@@ -56,7 +56,10 @@ body::before {
   z-index: -1;
   pointer-events: none;
   content: '';
-  background: radial-gradient(circle at 12% -10%, rgba(122, 1, 122, 0.18), transparent 34rem);
+  background:
+    radial-gradient(ellipse 130% 80% at 50% -22%, rgba(255, 255, 255, 0.045), transparent 62%),
+    radial-gradient(ellipse 60% 50% at 92% 108%, rgba(154, 75, 176, 0.1), transparent 70%),
+    linear-gradient(165deg, #2d2635 0%, #2a2431 46%, #26202c 100%);
 }
 
 h1,
@@ -187,16 +190,16 @@ ol {
 
 .btn-primary {
   border-color: transparent;
-  background: var(--accent-strong);
+  background: linear-gradient(180deg, #a55bbb, #8d3d9f);
   color: #fff;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
     0 6px 14px rgba(18, 8, 24, 0.2);
 }
 
 .btn-primary:hover {
   border-color: transparent;
-  background: #aa5cc0;
+  background: linear-gradient(180deg, #b06cc5, #9a4bb0);
 }
 
 .btn-ghost {
@@ -267,7 +270,8 @@ ol {
 .card {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  background: var(--surface-color);
+  background-color: var(--surface-color);
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 44%);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.035),
     var(--shadow-soft);
@@ -278,7 +282,8 @@ ol {
   grid-template-columns: 1.35fr 1fr 1fr;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  background: var(--surface-color);
+  background-color: var(--surface-color);
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.028), transparent 46%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
   overflow: hidden;
 }
@@ -294,7 +299,7 @@ ol {
 }
 
 .metric:first-child {
-  background: rgba(122, 1, 122, 0.12);
+  background: linear-gradient(135deg, rgba(122, 1, 122, 0.14), rgba(154, 75, 176, 0.03) 68%);
 }
 
 .metric + .metric {

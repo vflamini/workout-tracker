@@ -215,7 +215,7 @@
     display: block;
     width: 100%;
     border-radius: 0.35rem 0.35rem 0 0;
-    background: var(--accent-color);
+    background: linear-gradient(180deg, var(--accent-color), #a06bb8);
     transition:
       background-color 140ms var(--ease-out),
       transform 120ms var(--ease-out);
@@ -326,7 +326,7 @@
     display: block;
     height: 100%;
     border-radius: 999px;
-    background: var(--accent-color);
+    background: linear-gradient(90deg, #a06bb8, var(--accent-color));
   }
 
   @media (max-width: 1000px) {

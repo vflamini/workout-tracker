@@ -254,7 +254,7 @@
 
   .nav-link.active {
     border-color: rgba(154, 75, 176, 0.45);
-    background: var(--accent-soft);
+    background: linear-gradient(90deg, var(--accent-soft), rgba(154, 75, 176, 0.035));
     color: var(--pink-color);
   }
 
@@ -286,7 +286,7 @@
     padding: 0.75rem 0.85rem;
     border: 1px solid rgba(154, 75, 176, 0.48);
     border-radius: var(--radius-sm);
-    background: var(--accent-soft);
+    background: linear-gradient(135deg, var(--accent-soft), rgba(154, 75, 176, 0.04));
     transition:
       border-color 140ms var(--ease-out),
       transform 120ms var(--ease-out);

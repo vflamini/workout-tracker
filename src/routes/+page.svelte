@@ -135,7 +135,7 @@
     padding: 0.9rem 1.1rem;
     border: 1px solid rgba(154, 75, 176, 0.55);
     border-radius: var(--radius-md);
-    background: var(--accent-soft);
+    background: linear-gradient(135deg, var(--accent-soft), rgba(154, 75, 176, 0.04));
     transition:
       border-color 140ms var(--ease-out),
       transform 120ms var(--ease-out);

@@ -116,7 +116,8 @@
     padding: 1rem;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    background: var(--surface-color);
+    background-color: var(--surface-color);
+    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 48%);
   }
 
   .exercise-head {
