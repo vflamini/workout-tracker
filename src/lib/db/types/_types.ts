@@ -4,6 +4,7 @@ export interface weight {
 }
 
 export interface exercise {
+  id?: number;
   exerciseName: string;
   weighted: boolean;
   weightBaseAmount: number;

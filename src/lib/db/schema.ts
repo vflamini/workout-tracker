@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, real, primaryKey } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, real, index } from 'drizzle-orm/sqlite-core';
 
 export const weights = sqliteTable('weights', {
   id: integer('id').notNull().primaryKey({ autoIncrement: true }),
@@ -7,7 +7,7 @@ export const weights = sqliteTable('weights', {
 });
 
 export const workouts = sqliteTable('workouts', {
-  id: integer('id', { mode: 'boolean' }).notNull().primaryKey({ autoIncrement: true }),
+  id: integer('id').notNull().primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),
   variant: text('variant'),
   date: integer('date', { mode: 'timestamp' }),
@@ -37,15 +37,19 @@ export const workoutExercises = sqliteTable(
       .notNull()
       .references(() => workouts.id)
   },
-  (table) => [primaryKey({ columns: [table.exerciseId, table.workoutId] })]
+  (table) => [index('workout_exercises_workout_id_idx').on(table.workoutId)]
 );
 
-export const sets = sqliteTable('sets', {
-  id: integer('id').notNull().primaryKey({ autoIncrement: true }),
-  workoutExerciseId: integer('workout_exercise_id')
-    .notNull()
-    .references(() => workoutExercises.id),
-  weight: real('weight'),
-  time: real('time'),
-  reps: integer('reps')
-});
+export const sets = sqliteTable(
+  'sets',
+  {
+    id: integer('id').notNull().primaryKey({ autoIncrement: true }),
+    workoutExerciseId: integer('workout_exercise_id')
+      .notNull()
+      .references(() => workoutExercises.id),
+    weight: real('weight'),
+    time: real('time'),
+    reps: integer('reps')
+  },
+  (table) => [index('sets_workout_exercise_id_idx').on(table.workoutExerciseId)]
+);

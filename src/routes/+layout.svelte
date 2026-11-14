@@ -17,6 +17,7 @@
       shortLabel: 'Exercise',
       icon: 'fa-circle-plus'
     },
+    { href: 'history', label: 'History', shortLabel: 'History', icon: 'fa-clock-rotate-left' },
     { href: 'my-stats', label: 'My Stats', shortLabel: 'Stats', icon: 'fa-chart-line' }
   ];
 
@@ -377,7 +378,7 @@
       inset: auto 0 0;
       z-index: 60;
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 0.25rem;
       padding: 0.5rem 0.55rem calc(0.5rem + env(safe-area-inset-bottom));
       border-top: 1px solid var(--border-color);

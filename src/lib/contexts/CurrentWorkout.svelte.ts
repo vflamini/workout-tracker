@@ -10,11 +10,13 @@ class CurrentWorkout {
     exercises: []
   });
 
-  #blankSet = {
-    reps: 0,
-    weight: 0,
-    time: '00:00'
-  };
+  #blankSet() {
+    return {
+      reps: 0,
+      weight: 0,
+      time: '00:00'
+    };
+  }
 
   get exercises() {
     return this.#current.exercises;
@@ -46,7 +48,7 @@ class CurrentWorkout {
       } else {
         return {
           ...currentExercise,
-          sets: [...currentExercise.sets, this.#blankSet]
+          sets: [...currentExercise.sets, this.#blankSet()]
         };
       }
     });
@@ -57,6 +59,16 @@ class CurrentWorkout {
     if (exercise.sets.length === 0) {
       this.#current.exercises = this.#current.exercises.filter((e) => e !== exercise);
     }
+  }
+
+  #reset() {
+    this.#current = {
+      id: 0,
+      time: 0,
+      name: '',
+      variation: '',
+      exercises: []
+    };
   }
 
   actions = {
@@ -74,6 +86,10 @@ class CurrentWorkout {
 
     removeSet: (exercise: WorkoutExercise, setNum: number) => {
       this.#removeSet(exercise, setNum);
+    },
+
+    reset: () => {
+      this.#reset();
     }
   };
 }
