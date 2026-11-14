@@ -23,6 +23,7 @@ export async function getOverview() {
       sets: setTotal
     },
     recent: recent.map((workout) => ({
+      id: workout.id,
       name: workout.name,
       variant: workout.variant,
       date: workout.date instanceof Date ? workout.date.toISOString() : null

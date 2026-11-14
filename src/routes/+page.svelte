@@ -78,14 +78,16 @@
 
     {#if data.recent.length}
       <ul class="activity-list">
-        {#each data.recent as workout, i (i)}
-          <li class="activity-item">
-            <span class="activity-icon"><i class="fa-solid fa-bolt" aria-hidden="true"></i></span>
-            <span class="activity-copy">
-              <strong>{workout.name}</strong>
-              <span>{workout.variant || 'Standard session'}</span>
-            </span>
-            <time class="activity-date">{formatDate(workout.date)}</time>
+        {#each data.recent as workout (workout.id)}
+          <li>
+            <a class="activity-item" href={resolve('/history/[id]', { id: String(workout.id) })}>
+              <span class="activity-icon"><i class="fa-solid fa-bolt" aria-hidden="true"></i></span>
+              <span class="activity-copy">
+                <strong>{workout.name}</strong>
+                <span>{workout.variant || 'Standard session'}</span>
+              </span>
+              <time class="activity-date">{formatDate(workout.date)}</time>
+            </a>
           </li>
         {/each}
       </ul>
@@ -230,6 +232,14 @@
     border: 1px solid transparent;
     border-radius: var(--radius-sm);
     background: var(--surface-muted);
+    transition:
+      border-color 160ms var(--ease-out),
+      background-color 160ms var(--ease-out);
+  }
+
+  .activity-item:hover {
+    border-color: rgba(52, 211, 153, 0.35);
+    background: var(--surface-raised);
   }
 
   .activity-icon {

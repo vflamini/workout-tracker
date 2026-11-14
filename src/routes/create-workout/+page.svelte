@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
   import TextInput from '#lib/components/TextInput.svelte';
   import Timer from '#lib/components/Timer.svelte';
@@ -13,6 +14,15 @@
   const { workout, actions } = getCurrentWorkout();
   const currentExercises = $derived(workout.exercises);
   let exercisesModal = $state(false);
+  let saving = $state(false);
+  let errorMessage = $state('');
+
+  const today = new Date();
+  let workoutDate = $state(
+    `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(
+      today.getDate()
+    ).padStart(2, '0')}`
+  );
 
   const blankSet: Set = {
     reps: 0,
@@ -41,11 +51,70 @@
     exercisesModal = false;
   }
 
+  function loggedSets(exercise: WorkoutExercise) {
+    return (exercise.sets ?? [])
+      .map((set) => ({
+        weight: set.weight,
+        reps: set.reps,
+        time: set.time
+      }))
+      .filter(
+        (set) =>
+          (set.reps ?? 0) > 0 ||
+          (set.weight ?? 0) > 0 ||
+          (set.time && set.time !== '00:00' && set.time !== '00:00:00')
+      );
+  }
+
   async function submit() {
-    await fetch('/api/workout-exercise', {
-      method: 'POST',
-      body: JSON.stringify(currentExercises)
-    });
+    if (saving) return;
+
+    errorMessage = '';
+    const name = workout.current.name.trim();
+
+    if (!name) {
+      errorMessage = 'Give this workout a name before finishing.';
+      return;
+    }
+
+    const payloadExercises = currentExercises
+      .map((exercise) => ({
+        exerciseId: Number(exercise.id),
+        sets: loggedSets(exercise)
+      }))
+      .filter((exercise) => Number.isInteger(exercise.exerciseId) && exercise.sets.length > 0);
+
+    if (!payloadExercises.length) {
+      errorMessage = 'Log at least one set before finishing this workout.';
+      return;
+    }
+
+    saving = true;
+
+    try {
+      const response = await fetch('/api/workouts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          variant: workout.current.variation,
+          date: workoutDate,
+          exercises: payloadExercises
+        })
+      });
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error ?? 'Could not save workout');
+      }
+
+      actions.reset();
+      await goto(resolve('/history/[id]', { id: String(result.id) }));
+    } catch (error) {
+      errorMessage = error instanceof Error ? error.message : 'Could not save workout';
+    } finally {
+      saving = false;
+    }
   }
 </script>
 
@@ -89,7 +158,7 @@
         placeholder="Optional"
         bind:bind={workout.current.variation}
       />
-      <DateInput id="workout-date" label="Date" />
+      <DateInput id="workout-date" label="Date" bind:bind={workoutDate} />
       <div class="timer-field">
         <span class="field-label">Elapsed</span>
         <Timer />
@@ -136,10 +205,18 @@
       <strong
         >{currentExercises.length} exercise{currentExercises.length === 1 ? '' : 's'} in this session</strong
       >
+      {#if errorMessage}
+        <span class="form-error" role="alert">{errorMessage}</span>
+      {/if}
     </div>
-    <button type="button" class="btn btn-primary" onclick={submit}>
-      <i class="fa-solid fa-check" aria-hidden="true"></i>
-      Finish workout
+    <button type="button" class="btn btn-primary" onclick={submit} disabled={saving}>
+      {#if saving}
+        <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+        Saving...
+      {:else}
+        <i class="fa-solid fa-check" aria-hidden="true"></i>
+        Finish workout
+      {/if}
     </button>
   </div>
 {/if}
@@ -206,6 +283,17 @@
 
   .finish-copy strong {
     font-size: 0.95rem;
+  }
+
+  .form-error {
+    color: var(--negative-output-color);
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .finish-bar .btn:disabled {
+    cursor: wait;
+    opacity: 0.7;
   }
 
   @media (max-width: 720px) {

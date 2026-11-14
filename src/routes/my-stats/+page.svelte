@@ -1,5 +1,6 @@
 <script lang="ts">
   import { resolve } from '$app/paths';
+  import { formatVolume } from '#lib/utils/format.ts';
 
   let { data } = $props();
 
@@ -8,6 +9,11 @@
     { label: 'Exercises', value: data.totals.exercises, icon: 'fa-list-check' },
     { label: 'Sets', value: data.totals.sets, icon: 'fa-layer-group' }
   ]);
+
+  const totalVolume = $derived(data.weeks.reduce((total, week) => total + week.volume, 0));
+  const bestWeek = $derived(
+    data.weeks.reduce((best, week) => (week.volume > best.volume ? week : best), data.weeks[0])
+  );
 </script>
 
 <svelte:head>
@@ -19,7 +25,7 @@
     <p class="eyebrow">Progress</p>
     <h1 class="page-title">My stats</h1>
     <p class="page-subtitle">
-      A long-term view of your training. Detailed trends and charts are coming next.
+      Weekly volume, lifetime totals, and the exercises doing the most work.
     </p>
   </div>
   <div class="page-actions">
@@ -43,28 +49,85 @@
 <section class="card chart-card" aria-labelledby="chart-heading">
   <div class="section-head">
     <div>
-      <h2 id="chart-heading">Training volume</h2>
-      <p>Charts will appear once you have a few sessions logged.</p>
+      <h2 id="chart-heading">Weekly volume</h2>
+      <p>Weight moved per week over the last {data.weeks.length} weeks.</p>
     </div>
-    <span class="badge"
-      ><i class="fa-solid fa-hourglass-half" aria-hidden="true"></i> Coming soon</span
-    >
+    {#if data.totals.sets}
+      <span class="badge">
+        <i class="fa-solid fa-chart-column" aria-hidden="true"></i>
+        Best week: {formatVolume(bestWeek.volume)}
+      </span>
+    {/if}
   </div>
 
-  <div class="chart-placeholder" aria-hidden="true">
-    <span style="height: 32%"></span>
-    <span style="height: 48%"></span>
-    <span style="height: 40%"></span>
-    <span style="height: 68%"></span>
-    <span style="height: 56%"></span>
-    <span style="height: 82%"></span>
-    <span style="height: 74%"></span>
-  </div>
+  {#if data.totals.sets}
+    <div class="bar-chart">
+      {#each data.weeks as week, i (i)}
+        <div class="bar-column">
+          <span class="bar-value">{week.volume ? formatVolume(week.volume) : ''}</span>
+          <div class="bar-track">
+            <div
+              class="bar-fill"
+              style={`height: ${Math.max((week.volume / data.maxVolume) * 100, week.volume > 0 ? 5 : 1.5)}%`}
+            ></div>
+          </div>
+          <span class="bar-label">{week.label}</span>
+        </div>
+      {/each}
+    </div>
 
-  <p class="chart-note">
-    Keep logging workouts to unlock weekly volume, personal records, and exercise trends.
-  </p>
+    <div class="chart-summary">
+      <div>
+        <span class="muted">Volume in this window</span>
+        <strong>{formatVolume(totalVolume)}</strong>
+      </div>
+      <div>
+        <span class="muted">Sets logged</span>
+        <strong>{data.totals.sets}</strong>
+      </div>
+      <div>
+        <span class="muted">Best week</span>
+        <strong>{formatVolume(bestWeek.volume)}</strong>
+      </div>
+    </div>
+  {:else}
+    <div class="empty-state chart-empty">
+      <span class="empty-icon"><i class="fa-solid fa-chart-column" aria-hidden="true"></i></span>
+      <h3>No training data yet</h3>
+      <p>Log a workout with at least one weighted set and your weekly volume will appear here.</p>
+      <a class="btn btn-primary" href={resolve('create-workout')}>
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        Log a workout
+      </a>
+    </div>
+  {/if}
 </section>
+
+{#if data.topExercises.length}
+  <section class="card top-card" aria-labelledby="top-heading">
+    <div class="section-head">
+      <div>
+        <h2 id="top-heading">Top exercises</h2>
+        <p>Ranked by volume across the last {data.weeks.length} weeks.</p>
+      </div>
+    </div>
+
+    <div class="top-list">
+      {#each data.topExercises as exercise, i (exercise.name)}
+        <div class="top-row">
+          <span class="top-rank">{i + 1}</span>
+          <span class="top-copy">
+            <strong>{exercise.name}</strong>
+            <span>{formatVolume(exercise.volume)} volume</span>
+          </span>
+          <div class="top-bar" aria-hidden="true">
+            <span style={`width: ${(exercise.volume / data.topExercises[0].volume) * 100}%`}></span>
+          </div>
+        </div>
+      {/each}
+    </div>
+  </section>
+{/if}
 
 <style>
   .stat-grid {
@@ -105,35 +168,153 @@
     line-height: 1.1;
   }
 
-  .chart-card {
+  .chart-card,
+  .top-card {
     margin-top: 1rem;
     padding: 1.25rem;
   }
 
-  .chart-placeholder {
+  .bar-chart {
     display: flex;
     align-items: flex-end;
-    gap: 0.6rem;
-    height: 12rem;
+    gap: clamp(0.35rem, 1.4vw, 0.8rem);
+    height: 14rem;
     margin-top: 1.5rem;
-    padding: 1rem;
+    padding: 1rem 0.75rem 0;
     border-radius: var(--radius-md);
     background:
       linear-gradient(to top, rgba(148, 163, 184, 0.06) 1px, transparent 1px) 0 0 / 100% 25%,
       var(--surface-muted);
   }
 
-  .chart-placeholder span {
+  .bar-column {
+    display: flex;
     flex: 1;
-    border-radius: 0.5rem 0.5rem 0 0;
-    background: linear-gradient(180deg, var(--accent-color), rgba(16, 185, 129, 0.18));
-    opacity: 0.75;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    height: 100%;
+    min-width: 0;
   }
 
-  .chart-note {
-    margin-top: 1rem;
+  .bar-value {
+    min-height: 1rem;
     color: var(--muted-text-color);
-    font-size: 0.85rem;
+    font-size: 0.62rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .bar-track {
+    display: flex;
+    align-items: flex-end;
+    width: 100%;
+    flex: 1;
+    max-width: 3.2rem;
+    border-radius: 0.45rem 0.45rem 0 0;
+    background: rgba(148, 163, 184, 0.04);
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    width: 100%;
+    border-radius: 0.45rem 0.45rem 0 0;
+    background: linear-gradient(180deg, var(--accent-color), rgba(16, 185, 129, 0.22));
+    transition: height 300ms var(--ease-out);
+  }
+
+  .bar-label {
+    color: var(--muted-text-color);
+    font-size: 0.66rem;
+    white-space: nowrap;
+  }
+
+  .chart-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  .chart-summary div {
+    display: flex;
+    flex-direction: column;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--surface-muted);
+  }
+
+  .chart-summary .muted {
+    font-size: 0.72rem;
+  }
+
+  .chart-summary strong {
+    font-size: 1rem;
+  }
+
+  .chart-empty {
+    margin-top: 1.25rem;
+  }
+
+  .top-list {
+    display: grid;
+    gap: 0.55rem;
+    margin-top: 1rem;
+  }
+
+  .top-row {
+    display: grid;
+    grid-template-columns: auto minmax(7rem, 1fr) minmax(4rem, 1.4fr);
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.75rem;
+    border-radius: var(--radius-sm);
+    background: var(--surface-muted);
+  }
+
+  .top-rank {
+    display: grid;
+    place-items: center;
+    width: 1.7rem;
+    height: 1.7rem;
+    border-radius: 0.5rem;
+    background: rgba(148, 163, 184, 0.08);
+    color: var(--muted-text-color);
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  .top-copy {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.3;
+  }
+
+  .top-copy strong {
+    overflow: hidden;
+    font-size: 0.86rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .top-copy span {
+    color: var(--muted-text-color);
+    font-size: 0.72rem;
+  }
+
+  .top-bar {
+    height: 0.45rem;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.08);
+    overflow: hidden;
+  }
+
+  .top-bar span {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: var(--accent-color);
   }
 
   @media (max-width: 640px) {
@@ -153,6 +334,32 @@
 
     .stat-card strong {
       margin-left: auto;
+    }
+
+    .chart-summary {
+      grid-template-columns: 1fr;
+    }
+
+    .bar-chart {
+      height: 11rem;
+      gap: 0.25rem;
+      padding-inline: 0.35rem;
+    }
+
+    .bar-value {
+      font-size: 0.55rem;
+    }
+
+    .bar-label {
+      font-size: 0.55rem;
+    }
+
+    .top-row {
+      grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .top-bar {
+      display: none;
     }
   }
 </style>
