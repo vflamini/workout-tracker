@@ -242,7 +242,7 @@
     min-width: 2rem;
     height: 2rem;
     border-radius: 0.55rem;
-    background: rgba(148, 163, 184, 0.08);
+    background: rgba(255, 200, 255, 0.06);
     color: var(--muted-text-color);
     font-size: 0.72rem;
     font-weight: 700;

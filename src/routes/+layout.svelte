@@ -31,7 +31,7 @@
 
 <svelte:head>
   <title>Workout Tracker</title>
-  <meta name="theme-color" content="#0b1120" />
+  <meta name="theme-color" content="#2a2431" />
 </svelte:head>
 
 <a class="skip-link" href="#main-content">Skip to content</a>
@@ -123,7 +123,7 @@
     width: 40%;
     height: 100%;
     border-radius: 999px;
-    background: linear-gradient(90deg, transparent, var(--accent-color), #38bdf8);
+    background: linear-gradient(90deg, transparent, var(--pink-color), var(--accent-color));
     animation: loading 900ms var(--ease-out) infinite;
   }
 
@@ -151,7 +151,7 @@
     height: 100dvh;
     padding: 1.5rem 1rem;
     border-right: 1px solid var(--border-color);
-    background: rgba(10, 16, 29, 0.76);
+    background: rgba(42, 36, 49, 0.78);
     backdrop-filter: blur(18px);
     overflow-y: auto;
   }
@@ -170,10 +170,10 @@
     width: 2.5rem;
     height: 2.5rem;
     border-radius: 0.8rem;
-    background: var(--accent-color);
-    color: #03201a;
+    background: linear-gradient(135deg, #d98cff, #7a017a);
+    color: #fff;
     font-size: 1rem;
-    box-shadow: 0 8px 24px rgba(52, 211, 153, 0.25);
+    box-shadow: 0 8px 24px rgba(122, 1, 122, 0.35);
   }
 
   .brand-copy {
@@ -226,14 +226,14 @@
   }
 
   .nav-link:hover {
-    background: rgba(148, 163, 184, 0.07);
+    background: rgba(255, 200, 255, 0.06);
     color: var(--main-text-color);
   }
 
   .nav-link.active {
-    border-color: rgba(52, 211, 153, 0.25);
+    border-color: rgba(194, 107, 255, 0.35);
     background: var(--accent-soft);
-    color: var(--main-text-color);
+    color: var(--pink-color);
   }
 
   .nav-icon {
@@ -242,14 +242,14 @@
     width: 1.9rem;
     height: 1.9rem;
     border-radius: 0.6rem;
-    background: rgba(148, 163, 184, 0.08);
+    background: rgba(255, 200, 255, 0.06);
     color: inherit;
     font-size: 0.82rem;
   }
 
   .nav-link.active .nav-icon {
-    background: var(--accent-color);
-    color: #03201a;
+    background: linear-gradient(135deg, #d98cff, #7a017a);
+    color: #fff;
   }
 
   .nav-arrow {
@@ -287,7 +287,7 @@
     height: 2.1rem;
     border-radius: 50%;
     background: var(--surface-raised);
-    color: var(--accent-color);
+    color: var(--pink-color);
     font-size: 0.82rem;
     font-weight: 800;
   }
@@ -347,7 +347,7 @@
       justify-content: space-between;
       padding: 0.75rem 1rem;
       border-bottom: 1px solid var(--border-color);
-      background: rgba(10, 16, 29, 0.82);
+      background: rgba(42, 36, 49, 0.85);
       backdrop-filter: blur(18px);
     }
 
@@ -382,7 +382,7 @@
       gap: 0.25rem;
       padding: 0.5rem 0.55rem calc(0.5rem + env(safe-area-inset-bottom));
       border-top: 1px solid var(--border-color);
-      background: rgba(10, 16, 29, 0.92);
+      background: rgba(42, 36, 49, 0.94);
       backdrop-filter: blur(20px);
     }
 
@@ -408,7 +408,7 @@
 
     .mobile-nav-link.active {
       background: var(--accent-soft);
-      color: var(--accent-color);
+      color: var(--pink-color);
     }
   }
 

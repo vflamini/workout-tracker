@@ -85,7 +85,7 @@
   }
 
   .history-card:hover {
-    border-color: rgba(52, 211, 153, 0.4);
+    border-color: rgba(194, 107, 255, 0.42);
     background: var(--surface-raised);
     transform: translateY(-1px);
   }

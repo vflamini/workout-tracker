@@ -309,7 +309,7 @@
   }
 
   .option-card.active {
-    border-color: rgba(52, 211, 153, 0.5);
+    border-color: rgba(194, 107, 255, 0.5);
     background: var(--accent-soft);
   }
 
@@ -320,13 +320,13 @@
     width: 2.4rem;
     height: 2.4rem;
     border-radius: 0.7rem;
-    background: rgba(148, 163, 184, 0.1);
+    background: rgba(255, 200, 255, 0.06);
     color: var(--muted-text-color);
   }
 
   .option-card.active .option-icon {
-    background: var(--accent-color);
-    color: #03201a;
+    background: linear-gradient(135deg, #d98cff, #7a017a);
+    color: #fff;
   }
 
   .option-copy {
@@ -355,8 +355,8 @@
     width: 1.15rem;
     height: 1.15rem;
     border-radius: 50%;
-    background: var(--accent-color);
-    color: #03201a;
+    background: var(--accent-strong);
+    color: #fff;
     font-size: 0.55rem;
     opacity: 0;
     transform: scale(0.7);

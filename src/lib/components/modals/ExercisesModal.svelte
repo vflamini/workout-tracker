@@ -126,7 +126,7 @@
     position: absolute;
     inset: 0;
     border: 0;
-    background: rgba(2, 6, 23, 0.72);
+    background: rgba(20, 10, 25, 0.8);
     backdrop-filter: blur(6px);
   }
 
@@ -189,7 +189,7 @@
   }
 
   .search-field input::placeholder {
-    color: #64748b;
+    color: #9a82a7;
   }
 
   .exercises-list {
