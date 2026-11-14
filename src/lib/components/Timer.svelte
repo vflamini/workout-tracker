@@ -86,7 +86,7 @@
   }
 
   .timer-display[aria-pressed='true'] {
-    border-color: rgba(194, 107, 255, 0.45);
+    border-color: rgba(154, 75, 176, 0.5);
     background: var(--accent-soft);
   }
 

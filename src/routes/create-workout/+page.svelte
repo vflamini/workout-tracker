@@ -13,6 +13,9 @@
   const exercises = $derived(data.exercises);
   const { workout, actions } = getCurrentWorkout();
   const currentExercises = $derived(workout.exercises);
+  const totalLoggedSets = $derived(
+    currentExercises.reduce((total, exercise) => total + loggedSets(exercise).length, 0)
+  );
   let exercisesModal = $state(false);
   let saving = $state(false);
   let errorMessage = $state('');
@@ -201,9 +204,10 @@
 {#if currentExercises.length}
   <div class="finish-bar">
     <div class="finish-copy">
-      <span class="muted">Ready when you are</span>
+      <span class="muted">Unsaved session</span>
       <strong
-        >{currentExercises.length} exercise{currentExercises.length === 1 ? '' : 's'} in this session</strong
+        >{currentExercises.length} exercise{currentExercises.length === 1 ? '' : 's'} · {totalLoggedSets}
+        set{totalLoggedSets === 1 ? '' : 's'} logged</strong
       >
       {#if errorMessage}
         <span class="form-error" role="alert">{errorMessage}</span>
