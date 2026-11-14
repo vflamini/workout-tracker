@@ -1,23 +1,30 @@
 <script lang="ts">
-  const today = $state(new Date());
-  const year = $derived(today.getFullYear());
-  const month = $derived(String(today.getMonth() + 1).padStart(2, '0')); // Month is 0-indexed
-  const day = $derived(String(today.getDate()).padStart(2, '0'));
-  const formattedDate = $derived(`${year}-${month}-${day}`);
+  const today = new Date();
+  const todayValue = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(
+    today.getDate()
+  ).padStart(2, '0')}`;
+
+  let { id = 'date-field', label = 'Date', bind = $bindable(todayValue), classes = '' } = $props();
+
+  const sizes = $derived(
+    Array.isArray(classes) ? classes : String(classes).split(/\s+/).filter(Boolean)
+  );
 </script>
 
-<div>
-  <input type="date" value={formattedDate} />
+<div class={['field', { compact: sizes.includes('skinny') || sizes.includes('short') }]}>
+  {#if label}
+    <label class="field-label" for={id}>{label}</label>
+  {/if}
+  <input class="field-input date-input" {id} type="date" bind:value={bind} />
 </div>
 
 <style>
-  div input[type='date'] {
-    background-color: transparent;
-    color: white;
-    outline: none;
-    border: 1px solid gray;
-    border-radius: 5px;
-    padding: 5px;
+  .date-input {
     cursor: pointer;
+  }
+
+  .date-input::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.7;
   }
 </style>

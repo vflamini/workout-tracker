@@ -2,105 +2,164 @@
   import NumberInput from './NumberInput.svelte';
   import TimeInput from './TimeInput.svelte';
 
-  let { exercise = $bindable(), addSet, removeSet } = $props();
+  let { exercise, addSet, removeSet } = $props();
 </script>
 
-<div>
-  <span>{exercise.exerciseName}</span>
-  {#if exercise.weighted}
-    <button class="info">
-      <i class="fa-solid fa-dumbbell"></i>
-      {exercise.weightName}
+<article class="exercise-card">
+  <header class="exercise-head">
+    <div class="exercise-title">
+      <h3>{exercise.exerciseName}</h3>
+      {#if exercise.weighted || exercise.isTimed || exercise.equipment}
+        <div class="badge-row">
+          {#if exercise.weighted}
+            <span class="badge">
+              <i class="fa-solid fa-dumbbell" aria-hidden="true"></i>
+              {exercise.weightName ?? 'Weighted'}
+            </span>
+          {/if}
+          {#if exercise.isTimed}
+            <span class="badge">
+              <i class="fa-solid fa-stopwatch" aria-hidden="true"></i>
+              Timed
+            </span>
+          {/if}
+          {#if exercise.equipment}
+            <span class="badge">
+              <i class="fa-solid fa-toolbox" aria-hidden="true"></i>
+              {exercise.equipment}
+            </span>
+          {/if}
+        </div>
+      {/if}
+    </div>
+    <button type="button" class="btn btn-ghost btn-sm" onclick={() => addSet(exercise)}>
+      <i class="fa-solid fa-plus" aria-hidden="true"></i>
+      Add set
     </button>
-  {/if}
-  {#if exercise.isTimed}
-    <button class="info">
-      <i class="fa-solid fa-stopwatch"></i>
-      Timed
-    </button>
-  {/if}
-  {#if exercise.equipment}
-    <button class="info">
-      {exercise.equipment}
-    </button>
-  {/if}
-  <button class="add-set" onclick={() => addSet(exercise)}
-    ><i class="fa-solid fa-plus"></i> Add Set</button
-  >
-  <br />
-  <div class="sets">
-    {#each exercise.sets as set, i (i)}
+  </header>
+
+  <div class="set-list">
+    {#each exercise.sets ?? [] as set, i (i)}
       <div class="set-row">
-        <span>#{i + 1} </span>
+        <span class="set-index">#{i + 1}</span>
         {#if exercise.weighted}
           <NumberInput
             id={`set-${i}-weight`}
             label="Weight"
             step={0.5}
-            classes={['skinny', 'short']}
+            classes={['compact']}
             bind:bind={set.weight}
           />
         {/if}
         {#if exercise.isTimed}
-          <TimeInput id={`set-${i}-time`} label="Time" bind:bind={set.time} />
+          <TimeInput id={`set-${i}-time`} label="Time" classes={['compact']} bind:bind={set.time} />
         {:else}
           <NumberInput
             id={`set-${i}-reps`}
             label="Reps"
             min={1}
-            classes={['skinny', 'short']}
+            classes={['compact']}
             bind:bind={set.reps}
           />
         {/if}
-        <button class="remove-set" onclick={() => removeSet(exercise, i)}>
-          <i class="fa-solid fa-minus"></i>
-          Remove
+        <button
+          type="button"
+          class="btn btn-danger btn-icon set-remove"
+          onclick={() => removeSet(exercise, i)}
+          aria-label={`Remove set ${i + 1}`}
+          title="Remove set"
+        >
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
         </button>
       </div>
-      <br />
     {/each}
+    {#if !exercise.sets?.length}
+      <p class="set-empty">No sets yet. Add your first set to start logging.</p>
+    {/if}
   </div>
-</div>
+</article>
 
 <style>
-  div span {
-    color: var(--main-text-color);
+  .exercise-card {
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--surface-muted);
   }
 
-  div button.info {
-    border: 1px solid var(--border-highlight-color);
-  }
-
-  div button.add-set,
-  button.remove-set {
-    border: 1px solid gray;
-  }
-
-  div button.add-set:hover {
-    border-color: var(--border-highlight-color);
-    cursor: pointer;
-  }
-
-  div button.remove-set:hover {
-    border-color: var(--negative-output-color);
-    cursor: pointer;
-  }
-
-  button {
-    outline: none;
-    background: transparent;
-    color: var(--main-text-color);
-    padding: 5px;
-    border-radius: 5px;
-  }
-
-  div {
-    padding: 10px;
-  }
-
-  div.set-row {
+  .exercise-head {
     display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .exercise-title {
+    min-width: 0;
+  }
+
+  .exercise-title h3 {
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+  }
+
+  .set-list {
+    display: grid;
+    gap: 0.65rem;
+    margin-top: 1rem;
+  }
+
+  .set-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.6rem;
+  }
+
+  .set-row :global(.field) {
+    flex: 1 1 7.5rem;
+  }
+
+  .set-index {
+    display: grid;
+    place-items: center;
+    min-width: 2.2rem;
+    height: 2.45rem;
+    border-radius: 0.6rem;
+    background: rgba(148, 163, 184, 0.08);
+    color: var(--muted-text-color);
+    font-size: 0.76rem;
+    font-weight: 700;
+  }
+
+  .set-remove {
+    flex: 0 0 auto;
+  }
+
+  .set-empty {
+    padding: 0.75rem 0;
+    color: var(--muted-text-color);
+    font-size: 0.85rem;
+  }
+
+  @media (max-width: 560px) {
+    .exercise-head {
+      flex-direction: column;
+    }
+
+    .exercise-head .btn {
+      width: 100%;
+    }
+
+    .set-row :global(.field) {
+      flex-basis: 8rem;
+    }
   }
 </style>

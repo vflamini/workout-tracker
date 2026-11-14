@@ -1,8 +1,11 @@
 <script lang="ts">
+  import { resolve } from '$app/paths';
   import TextInput from '#lib/components/TextInput.svelte';
   import { insertExercise, insertWeight } from '#lib/db/functions/post.js';
 
   let { data } = $props();
+
+  const weightTypes = ['Barbell', 'Dumbbell', 'Curl Bar', 'Hex Bar', 'Plate', 'Band'];
 
   let exerciseName = $state('');
   let weightProperties = $state({
@@ -18,6 +21,7 @@
   });
 
   let isTimed = $state(false);
+  let status = $state<'idle' | 'saved' | 'error'>('idle');
 
   function reset() {
     exerciseName = '';
@@ -38,14 +42,17 @@
 
   function toggleWeighted() {
     weightProperties.weighted = !weightProperties.weighted;
+    status = 'idle';
   }
 
   function toggleTimed() {
     isTimed = !isTimed;
+    status = 'idle';
   }
 
   function toggleOtherEquipment() {
     otherEquipment.exists = !otherEquipment.exists;
+    status = 'idle';
   }
 
   function setWeightType(weightType: string) {
@@ -57,7 +64,9 @@
   }
 
   async function submitExercise() {
+    status = 'idle';
     let weightId: number | null = null;
+
     if (data.weights) {
       const weightRow = data.weights.filter(
         (weight) => weight.type === weightProperties.weightType
@@ -66,191 +75,409 @@
         weightId = weightRow[0].id;
       }
     }
+
     if (!weightId) {
       weightId = await insertWeight({
         type: weightProperties.weightType,
         defaultBaseWeight: weightProperties.baseAmount
       });
     }
+
     if (weightId) {
-      await insertExercise({
-        exerciseName: exerciseName,
+      const exerciseId = await insertExercise({
+        exerciseName,
         weighted: weightProperties.weighted,
         weightBaseAmount: weightProperties.baseAmount,
-        isTimed: isTimed,
-        weightId: weightId,
+        isTimed,
+        weightId,
         numHands: weightProperties.numHands,
         equipment: otherEquipment.equipment
       });
-      reset();
+
+      if (exerciseId) {
+        reset();
+        status = 'saved';
+      } else {
+        status = 'error';
+      }
+    } else {
+      status = 'error';
     }
   }
 </script>
 
-{#snippet weightTypeSelectButton(weightType: string)}
-  <button
-    class={{ selected: weightProperties.weightType === weightType }}
-    onclick={() => setWeightType(weightType)}
-    >{weightType}
-  </button>
-{/snippet}
+<svelte:head>
+  <title>Create Exercise · Workout Tracker</title>
+</svelte:head>
 
-{#snippet handSelectButton(numHands: number)}
-  <button
-    aria-label={`${numHands == 1 ? 'one' : 'two'} hand`}
-    class={{ selected: weightProperties.numHands === numHands }}
-    onclick={() => setNumHands(numHands)}
-  >
-    <i class={`fa-solid fa-hand${numHands === 2 ? 's' : ''}`}></i>
-  </button>
-{/snippet}
-
-<div>
-  <TextInput id="exercise-name" label="Name" bind:bind={exerciseName} />
-  <div class="property-toggles">
-    <div class="property">
-      <button class={{ selected: weightProperties.weighted }} onclick={toggleWeighted}>
-        <i class="fa-solid fa-dumbbell"></i>
-        <br /><br />
-        <span>{weightProperties.weighted ? 'Weighted' : 'Not Weighted'}</span>
-      </button>
-      {#if weightProperties.weighted}
-        <div class="property-inputs">
-          <div class="weight-type">
-            {@render weightTypeSelectButton('Barbell')}
-            {@render weightTypeSelectButton('Dumbbell')}
-            {@render weightTypeSelectButton('Curl Bar')}
-            {@render weightTypeSelectButton('Hex Bar')}
-            {@render weightTypeSelectButton('Plate')}
-            {@render weightTypeSelectButton('Band')}
-          </div>
-          <div class="num-hands">
-            {@render handSelectButton(1)}
-            {@render handSelectButton(2)}
-          </div>
-        </div>
-      {/if}
-    </div>
-    <div class="property">
-      <button class={{ selected: isTimed }} onclick={toggleTimed}>
-        <i class="fa-solid fa-stopwatch"></i>
-        <br /><br />
-        <span>{isTimed ? 'Timed' : 'Not Timed'}</span>
-      </button>
-    </div>
-    <div class="property">
-      <button class={{ selected: otherEquipment.exists }} onclick={toggleOtherEquipment}>
-        <i class="fa-solid fa-toolbox"></i>
-        <br /><br />
-        <span>{otherEquipment.exists ? 'Involves Other Equipment' : 'No Other Equipment'}</span>
-      </button>
-      {#if otherEquipment.exists}
-        <div class="property-inputs">
-          <TextInput
-            id="other-equipment-name"
-            label="Equipment"
-            classes="small"
-            bind:bind={otherEquipment.equipment}
-          />
-        </div>
-      {/if}
-    </div>
+<header class="page-header">
+  <div>
+    <p class="eyebrow">Library</p>
+    <h1 class="page-title">Create exercise</h1>
+    <p class="page-subtitle">Add a movement once, then reuse it across every workout you build.</p>
   </div>
-  <div class="muscle-target"></div>
-  <div class="submit-btn-container">
-    <button onclick={submitExercise} class="submit"> Create Exercise </button>
+  <div class="page-actions">
+    <a class="btn btn-ghost" href={resolve('')}>
+      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+      Back to dashboard
+    </a>
+  </div>
+</header>
+
+<div class="exercise-form card">
+  <div class="form-section">
+    <TextInput
+      id="exercise-name"
+      label="Exercise name"
+      placeholder="e.g. Incline dumbbell press"
+      bind:bind={exerciseName}
+    />
+  </div>
+
+  <div class="form-section">
+    <div class="section-head">
+      <div>
+        <h2>Exercise type</h2>
+        <p>Choose how this movement is tracked.</p>
+      </div>
+    </div>
+
+    <div class="option-grid">
+      <button
+        type="button"
+        class={['option-card', { active: weightProperties.weighted }]}
+        onclick={toggleWeighted}
+        aria-pressed={weightProperties.weighted}
+      >
+        <span class="option-icon"><i class="fa-solid fa-dumbbell" aria-hidden="true"></i></span>
+        <span class="option-copy">
+          <strong>Weighted</strong>
+          <span>Track load per set</span>
+        </span>
+        <span class="option-check"><i class="fa-solid fa-check" aria-hidden="true"></i></span>
+      </button>
+
+      <button
+        type="button"
+        class={['option-card', { active: isTimed }]}
+        onclick={toggleTimed}
+        aria-pressed={isTimed}
+      >
+        <span class="option-icon"><i class="fa-solid fa-stopwatch" aria-hidden="true"></i></span>
+        <span class="option-copy">
+          <strong>Timed</strong>
+          <span>Log duration per set</span>
+        </span>
+        <span class="option-check"><i class="fa-solid fa-check" aria-hidden="true"></i></span>
+      </button>
+
+      <button
+        type="button"
+        class={['option-card', { active: otherEquipment.exists }]}
+        onclick={toggleOtherEquipment}
+        aria-pressed={otherEquipment.exists}
+      >
+        <span class="option-icon"><i class="fa-solid fa-toolbox" aria-hidden="true"></i></span>
+        <span class="option-copy">
+          <strong>Equipment</strong>
+          <span>Needs another tool</span>
+        </span>
+        <span class="option-check"><i class="fa-solid fa-check" aria-hidden="true"></i></span>
+      </button>
+    </div>
+
+    {#if weightProperties.weighted}
+      <div class="config-panel">
+        <div class="config-group">
+          <span class="field-label">Weight type</span>
+          <div class="chip-row">
+            {#each weightTypes as weightType (weightType)}
+              <button
+                type="button"
+                class={['chip', { active: weightProperties.weightType === weightType }]}
+                onclick={() => setWeightType(weightType)}
+                aria-pressed={weightProperties.weightType === weightType}
+              >
+                {weightType}
+              </button>
+            {/each}
+          </div>
+        </div>
+
+        <div class="config-group">
+          <span class="field-label">Hands</span>
+          <div class="chip-row">
+            <button
+              type="button"
+              class={['chip', 'hand-chip', { active: weightProperties.numHands === 1 }]}
+              onclick={() => setNumHands(1)}
+              aria-label="One hand"
+              aria-pressed={weightProperties.numHands === 1}
+            >
+              <i class="fa-solid fa-hand" aria-hidden="true"></i>
+              One
+            </button>
+            <button
+              type="button"
+              class={['chip', 'hand-chip', { active: weightProperties.numHands === 2 }]}
+              onclick={() => setNumHands(2)}
+              aria-label="Two hands"
+              aria-pressed={weightProperties.numHands === 2}
+            >
+              <i class="fa-solid fa-hands" aria-hidden="true"></i>
+              Two
+            </button>
+          </div>
+        </div>
+      </div>
+    {/if}
+
+    {#if otherEquipment.exists}
+      <div class="config-panel single">
+        <TextInput
+          id="other-equipment-name"
+          label="Equipment name"
+          placeholder="e.g. Resistance band"
+          classes="compact"
+          bind:bind={otherEquipment.equipment}
+        />
+      </div>
+    {/if}
+  </div>
+
+  <div class="form-actions">
+    <div class="form-status" aria-live="polite">
+      {#if status === 'saved'}
+        <span class="status success"><i class="fa-solid fa-circle-check"></i> Exercise created</span
+        >
+      {:else if status === 'error'}
+        <span class="status error"
+          ><i class="fa-solid fa-circle-exclamation"></i> Could not save exercise</span
+        >
+      {/if}
+    </div>
+    <button type="button" class="btn btn-primary" onclick={submitExercise}>
+      <i class="fa-solid fa-plus" aria-hidden="true"></i>
+      Create exercise
+    </button>
   </div>
 </div>
 
 <style>
-  div.property-toggles {
-    padding: 15px;
-    display: flex;
-    justify-content: space-between;
+  .exercise-form {
+    padding: clamp(1rem, 2.5vw, 1.5rem);
   }
 
-  div.property {
-    width: 33%;
+  .form-section + .form-section {
+    margin-top: 1.75rem;
+    padding-top: 1.75rem;
+    border-top: 1px solid var(--border-color);
+  }
+
+  .option-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-top: 1.1rem;
+  }
+
+  .option-card {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    min-height: 6rem;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--surface-muted);
+    color: var(--main-text-color);
+    text-align: left;
+    transition:
+      border-color 160ms var(--ease-out),
+      background-color 160ms var(--ease-out),
+      transform 160ms var(--ease-out);
+  }
+
+  .option-card:hover {
+    border-color: var(--border-strong);
+    background: var(--surface-raised);
+  }
+
+  .option-card:active {
+    transform: translateY(1px);
+  }
+
+  .option-card.active {
+    border-color: rgba(52, 211, 153, 0.5);
+    background: var(--accent-soft);
+  }
+
+  .option-icon {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 0.7rem;
+    background: rgba(148, 163, 184, 0.1);
+    color: var(--muted-text-color);
+  }
+
+  .option-card.active .option-icon {
+    background: var(--accent-color);
+    color: #03201a;
+  }
+
+  .option-copy {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
+    gap: 0.15rem;
+    min-width: 0;
   }
 
-  div.property button {
-    width: 40vh;
-    height: 30vh;
-    background-color: transparent;
-    border: 1px solid gray;
-    border-radius: 5px;
-    color: gray;
+  .option-copy strong {
+    font-size: 0.9rem;
   }
 
-  div.property button:hover {
-    cursor: pointer;
-    background-color: #2a262c;
+  .option-copy span {
+    color: var(--muted-text-color);
+    font-size: 0.76rem;
+    line-height: 1.35;
   }
 
-  div.property button.selected {
-    background-color: #463e49;
-    border-color: #0d5c21;
-    color: white;
+  .option-check {
+    position: absolute;
+    top: 0.65rem;
+    right: 0.65rem;
+    display: grid;
+    place-items: center;
+    width: 1.15rem;
+    height: 1.15rem;
+    border-radius: 50%;
+    background: var(--accent-color);
+    color: #03201a;
+    font-size: 0.55rem;
+    opacity: 0;
+    transform: scale(0.7);
+    transition:
+      opacity 160ms var(--ease-out),
+      transform 160ms var(--ease-out);
   }
 
-  div.property-toggles button i {
-    font-size: 4rem;
+  .option-card.active .option-check {
+    opacity: 1;
+    transform: scale(1);
   }
 
-  div.property-inputs {
-    padding: 5px;
+  .config-panel {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
+    margin-top: 1rem;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--surface-muted);
   }
 
-  div.property div.property-inputs button {
-    height: 5vh;
-    width: 17vh;
-    padding: 1px;
+  .config-panel.single {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  div.property div.property-inputs div.weight-type {
-    text-align: center;
-  }
-
-  div.property div.property-inputs div.weight-type button {
-    margin: 5px;
-  }
-
-  div.property div.property-inputs div.num-hands {
+  .config-group {
     display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 2.35rem;
+    padding: 0.45rem 0.7rem;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    background: var(--surface-raised);
+    color: var(--muted-text-color);
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition:
+      border-color 160ms var(--ease-out),
+      background-color 160ms var(--ease-out),
+      color 160ms var(--ease-out);
+  }
+
+  .chip:hover {
+    border-color: var(--border-strong);
+    color: var(--main-text-color);
+  }
+
+  .chip.active {
+    border-color: var(--accent-color);
+    background: var(--accent-soft);
+    color: var(--accent-color);
+  }
+
+  .hand-chip {
+    min-width: 5.2rem;
     justify-content: center;
-    margin: 5px;
   }
 
-  div.property div.property-inputs div.num-hands button {
-    margin: 5px;
-    width: 5vh;
+  .form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1.75rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border-color);
   }
 
-  div.property div.property-inputs div.num-hands button i {
-    font-size: 1.2rem;
+  .form-status {
+    min-height: 1.5rem;
   }
 
-  div button.submit {
-    background-color: transparent;
-    cursor: pointer;
-    outline: none;
-    border: 1px solid gray;
-    color: white;
-    border-radius: 5px;
-    padding: 5px;
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.82rem;
+    font-weight: 600;
   }
 
-  div button.submit:hover {
-    color: #ffc8ff;
-    border-color: #7a017a;
+  .status.success {
+    color: var(--accent-color);
   }
 
-  div.submit-btn-container {
-    width: 100%;
-    text-align: center;
+  .status.error {
+    color: var(--negative-output-color);
+  }
+
+  @media (max-width: 820px) {
+    .option-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .option-card {
+      min-height: auto;
+    }
+
+    .config-panel {
+      grid-template-columns: 1fr;
+    }
+
+    .form-actions,
+    .form-actions .btn {
+      width: 100%;
+    }
   }
 </style>
